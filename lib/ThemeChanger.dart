@@ -27,7 +27,12 @@ class ThemeChanger with ChangeNotifier {
           color:Colors.white,
           fontSize: 20,
           letterSpacing: 0,
-        )
+        ),
+        bodyText2: GoogleFonts.roboto(
+          color:Colors.white,
+          fontSize: 22,
+          letterSpacing: 0,
+        ),
       ),
       iconTheme: IconThemeData(
         color: Colors.white,
@@ -56,6 +61,11 @@ class ThemeChanger with ChangeNotifier {
         bodyText1: GoogleFonts.roboto(
           color:Colors.black,
           fontSize: 20,
+          letterSpacing: 0,
+        ),
+        bodyText2: GoogleFonts.roboto(
+          color:Colors.white,
+          fontSize: 22,
           letterSpacing: 0,
         ),
       ),

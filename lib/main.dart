@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'Home.dart';
 import 'saveState.dart';
-import 'ColorSchema.dart';
 import 'package:provider/provider.dart';
 import 'ThemeChanger.dart';
 
@@ -10,7 +9,6 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  ColorSchema schema=new ColorSchema();
   Future<SaveState> initSaveState() async {
   SaveState save = new SaveState();
   await save.init();

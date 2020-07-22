@@ -1,7 +1,6 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'ColorSchema.dart';
 import 'saveState.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'ThemeChanger.dart';
@@ -15,7 +14,6 @@ class Settings extends StatefulWidget{
 }
 
 class SettingState extends State<Settings>{
-  ColorSchema schema=new ColorSchema();
 
   Widget build(BuildContext context){
     ThemeChanger _themeChanger = Provider.of<ThemeChanger>(context);
@@ -47,12 +45,11 @@ class SettingState extends State<Settings>{
                 width: width,
                 height: bodyHeight/8,
                 decoration: BoxDecoration(
-
                   border: Border(
                     bottom: BorderSide(color: Colors.grey[600],width:1),
                   ),
                 ),
-                padding: EdgeInsets.fromLTRB(10, 0, 0, 10),
+                padding: EdgeInsets.fromLTRB(15, 0, 15, 0),
                 child:Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
