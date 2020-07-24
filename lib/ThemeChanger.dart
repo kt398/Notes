@@ -13,43 +13,42 @@ class ThemeChanger with ChangeNotifier {
     notifyListeners();
   }
 
-
-  static ThemeData darkTheme(){
+  static ThemeData darkTheme() {
     return ThemeData(
+      //fontFamily: 'roboto',
       brightness: Brightness.dark,
       textTheme: TextTheme(
-        headline1: GoogleFonts.roboto(
-          color: Colors.white,
-          fontSize: 24,
-          letterSpacing: 0,
-        ),
-        bodyText1: GoogleFonts.roboto(
-          color:Colors.white,
-          fontSize: 20,
-          letterSpacing: 0,
-        ),
-        bodyText2: GoogleFonts.roboto(
-          color:Colors.white,
-          fontSize: 22,
-          letterSpacing: 0,
-        ),
-      ),
+          headline1: GoogleFonts.roboto(
+            color: Colors.white,
+            fontSize: 24,
+            letterSpacing: 0,
+          ),
+          bodyText1: GoogleFonts.roboto(
+            color: Colors.white,
+            fontSize: 20,
+            letterSpacing: 0,
+          ),
+          bodyText2: GoogleFonts.roboto(
+            color: Colors.white,
+            fontSize: 22,
+            letterSpacing: 0,
+          ),
+          subtitle2: GoogleFonts.roboto(
+            color: Colors.black,
+            fontSize: 18,
+            letterSpacing: 0,
+          )),
       iconTheme: IconThemeData(
         color: Colors.white,
       ),
-
-
-
-
-
-
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        foregroundColor: Colors.black,
+        backgroundColor: Colors.tealAccent,
+      ),
     );
-
-
   }
 
-
-  static ThemeData lightTheme(){
+  static ThemeData lightTheme() {
     return ThemeData(
       brightness: Brightness.light,
       textTheme: TextTheme(
@@ -59,12 +58,12 @@ class ThemeChanger with ChangeNotifier {
           letterSpacing: 0,
         ),
         bodyText1: GoogleFonts.roboto(
-          color:Colors.black,
+          color: Colors.black,
           fontSize: 20,
           letterSpacing: 0,
         ),
         bodyText2: GoogleFonts.roboto(
-          color:Colors.white,
+          color: Colors.white,
           fontSize: 22,
           letterSpacing: 0,
         ),
@@ -72,12 +71,10 @@ class ThemeChanger with ChangeNotifier {
       iconTheme: IconThemeData(
         color: Colors.white,
       ),
-
-
-
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        foregroundColor: Colors.white,
+        backgroundColor: Colors.blue,
+      ),
     );
-
-
-
   }
 }

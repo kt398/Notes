@@ -98,7 +98,7 @@ class SettingState extends State<Settings>{
             
             
             
-            ]
+            ],
           );
         }
       ),

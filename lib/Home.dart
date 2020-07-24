@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'saveState.dart';
 import 'Constants.dart';
 import 'Settings.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'TextPage.dart';
+import 'File.dart';
 
 class Home extends StatefulWidget {
   SaveState save;
@@ -10,7 +13,21 @@ class Home extends StatefulWidget {
   HomeState createState() => HomeState();
 }
 
-class HomeState extends State<Home> {
+class HomeState extends State<Home> with SingleTickerProviderStateMixin {
+  TabController tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    tabController = TabController(vsync: this, length: 2);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    tabController.dispose();
+  }
+
   bool selected = false;
   void choiceAction(String choice, SaveState save) {
     print(save.isDark);
@@ -23,100 +40,196 @@ class HomeState extends State<Home> {
     } else if (choice == Constants.Export) {}
   }
 
-  Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2,
-      initialIndex: 0,
-      child: Builder(builder: (context) {
-        return Scaffold(
-          appBar: new AppBar(
-            backgroundColor: Theme.of(context).appBarTheme.color,
-            title: TabBar(
-              tabs: <Widget>[
-                Tab(
-                  child: Text(
-                    'Notes',
-                    style: Theme.of(context).textTheme.bodyText2,
-                  ),
-                ),
-                Tab(
-                  child: Text(
-                    'Tasks',
-                    style: Theme.of(context).textTheme.bodyText2,
-                  ),
-                ),
-              ],
+  enterName(BuildContext context, bool isFile) {
+    String name = '';
+    return showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) {
+          return AlertDialog(
+            title: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                "Enter ${isFile ? 'File' : 'Folder'} Name",
+              ),
+            ),
+            content: TextField(
+              style: TextStyle(fontSize: 20),
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+              ),
+              autofocus: true,
+              onChanged: (text) {
+                name = text;
+              },
             ),
             actions: <Widget>[
-              PopupMenuTheme(
-                data: Theme.of(context).popupMenuTheme,
-                child: PopupMenuButton<String>(
-                    //color: Theme.of(context).appBarTheme.color,
-                    //color: Colors.white,
-                    icon: IconTheme(
-                      data: Theme.of(context).iconTheme,
-                      child: Icon(
-                        Icons.more_vert,
+              Center(
+                child: ButtonBar(
+                  //alignment: MainAxisAlignment.spaceEvenly,
+                  mainAxisSize: MainAxisSize.max,
+                  children: <Widget>[
+                    MaterialButton(
+                      onPressed: () => {
+                        Navigator.of(context).pop(),
+                      },
+                      child: Text(
+                        'Cancel',
+                        style: TextStyle(
+                          color: Colors.tealAccent,
+                          fontSize: 18,
+                        ),
                       ),
                     ),
-                    onSelected: (choice) {
-                      choiceAction(choice, widget.save);
-                    },
-                    itemBuilder: (context) {
-                      var list = List<PopupMenuEntry<String>>();
-                      list.add(
-                        PopupMenuItem(
-                          child: Text(
-                            Constants.Settings,
-                          ),
-                          value: Constants.Settings,
+                    MaterialButton(
+                      onPressed: () => {
+                        if (isFile)
+                          {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) => TextPage(
+                                        tabController.index == 1
+                                            ? Type.task
+                                            : Type.notes,name))),
+                            //Navigator.of(context).pop(),
+                          }
+                        else
+                          {
+                            //TODO Add method to add folder to the structure
+                            Navigator.pop(context, () {
+                              setState(() {});
+                            }),
+                          }
+                      },
+                      child: Text(
+                        'Submit',
+                        style: TextStyle(
+                          color: Colors.tealAccent,
+                          fontSize: 18,
                         ),
-                      );
-                      list.add(
-                        PopupMenuDivider(
-                          height: 10,
-                        ),
-                      );
-                      list.add(
-                        PopupMenuItem(
-                          child: Text(
-                            Constants.Import,
-                          ),
-                          value: Constants.Import,
-                        ),
-                      );
-                      list.add(
-                        PopupMenuDivider(
-                          height: 10,
-                        ),
-                      );
-                      list.add(
-                        PopupMenuItem(
-                          child: Text(
-                            Constants.Export,
-                          ),
-                          value: Constants.Export,
-                        ),
-                      );
-                      return list;
-                    }),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
-          ),
-          body: Stack(
-            children: <Widget>[
-              TabBarView(
-                children: <Widget>[
-                  ListView.builder(
-                    //itemCount: list.length,
-                    //itemBuilder: getListItemTile,
+          );
+        });
+  }
+
+  SpeedDial buildAddIcons() {
+    return SpeedDial(
+      //backgroundColor: Colors.tealAccent,
+      overlayOpacity: 0,
+      animatedIcon: AnimatedIcons.menu_close,
+      animatedIconTheme: IconThemeData(),
+      children: [
+        SpeedDialChild(
+          child: Icon(Icons.note_add),
+          onTap: () => {
+            enterName(context, true),
+          },
+          label: 'New Note',
+          labelStyle: Theme.of(context).textTheme.subtitle2,
+        ),
+        SpeedDialChild(
+          child: Icon(Icons.folder),
+          onTap: () => {
+            enterName(context, false),
+          },
+          label: "New Folder",
+          labelStyle: Theme.of(context).textTheme.subtitle2,
+        ),
+      ],
+    );
+  }
+
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: new AppBar(
+        backgroundColor: Theme.of(context).appBarTheme.color,
+        title: TabBar(
+          controller: tabController,
+          tabs: <Widget>[
+            Tab(
+              child: Text(
+                'Notes',
+                style: Theme.of(context).textTheme.bodyText2,
+              ),
+            ),
+            Tab(
+              child: Text(
+                'Tasks',
+                style: Theme.of(context).textTheme.bodyText2,
+              ),
+            ),
+          ],
+        ),
+        actions: <Widget>[
+          PopupMenuTheme(
+            data: Theme.of(context).popupMenuTheme,
+            child: PopupMenuButton<String>(
+                //color: Theme.of(context).appBarTheme.color,
+                //color: Colors.white,
+                icon: IconTheme(
+                  data: Theme.of(context).iconTheme,
+                  child: Icon(
+                    Icons.more_vert,
                   ),
-                ],
-              ),
-            ],
+                ),
+                onSelected: (choice) {
+                  choiceAction(choice, widget.save);
+                },
+                itemBuilder: (context) {
+                  var list = List<PopupMenuEntry<String>>();
+                  list.add(
+                    PopupMenuItem(
+                      child: Text(
+                        Constants.Settings,
+                      ),
+                      value: Constants.Settings,
+                    ),
+                  );
+                  list.add(
+                    PopupMenuDivider(
+                      height: 10,
+                    ),
+                  );
+                  list.add(
+                    PopupMenuItem(
+                      child: Text(
+                        Constants.Import,
+                      ),
+                      value: Constants.Import,
+                    ),
+                  );
+                  list.add(
+                    PopupMenuDivider(
+                      height: 10,
+                    ),
+                  );
+                  list.add(
+                    PopupMenuItem(
+                      child: Text(
+                        Constants.Export,
+                      ),
+                      value: Constants.Export,
+                    ),
+                  );
+                  return list;
+                }),
           ),
-        );
-      }),
+        ],
+      ),
+      body: TabBarView(
+        controller: tabController,
+        children: <Widget>[
+          Icon(Icons.card_giftcard),
+          Icon(Icons.ac_unit),
+        ],
+      ),
+      floatingActionButton: buildAddIcons(),
     );
   }
 }
