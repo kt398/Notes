@@ -11,6 +11,7 @@ void main() {
 class MyApp extends StatelessWidget {
   Future<SaveState> initSaveState() async {
   SaveState save = new SaveState();
+  await save.localPath;
   await save.init();
   return save;
 }

@@ -15,16 +15,19 @@ class Home extends StatefulWidget {
 
 class HomeState extends State<Home> with SingleTickerProviderStateMixin {
   TabController tabController;
+  TextEditingController _controller = new TextEditingController();
 
   @override
   void initState() {
     super.initState();
+    _controller.text='Untitled';
     tabController = TabController(vsync: this, length: 2);
   }
 
   @override
   void dispose() {
     super.dispose();
+    _controller.dispose();
     tabController.dispose();
   }
 
@@ -54,6 +57,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
               ),
             ),
             content: TextField(
+              controller: _controller,
               style: TextStyle(fontSize: 20),
               decoration: InputDecoration(
                 border: OutlineInputBorder(),
@@ -122,7 +126,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     return SpeedDial(
       //backgroundColor: Colors.tealAccent,
       overlayOpacity: 0,
-      animatedIcon: AnimatedIcons.menu_close,
+      animatedIcon: AnimatedIcons.add_event,
       animatedIconTheme: IconThemeData(),
       children: [
         SpeedDialChild(
@@ -147,6 +151,8 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
   Widget build(BuildContext context) {
     return Scaffold(
+      //TODO Hide appbar on scrollup
+      //TODO Change appbar on selected
       appBar: new AppBar(
         backgroundColor: Theme.of(context).appBarTheme.color,
         title: TabBar(
