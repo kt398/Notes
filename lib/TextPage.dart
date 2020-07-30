@@ -100,7 +100,7 @@ class TextPageState extends State<TextPage> {
                             child: IconButton(
                               icon: Icon(Icons.calendar_today),
                               onPressed: () async {
-                                var dateTemp = await selectDate();
+                                var dateTemp = await selectDate(); 
                                 if (dateTemp == null) return;
                                 var timeTemp = await selectTime();
                                 if (timeTemp == null) return;

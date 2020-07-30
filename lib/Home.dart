@@ -7,6 +7,7 @@ import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'TextPage.dart';
 import 'File.dart';
 
+//TODO make lightmode pretty
 class Home extends StatefulWidget {
   SaveState save;
   Home(this.save);
@@ -16,11 +17,15 @@ class Home extends StatefulWidget {
 class HomeState extends State<Home> with SingleTickerProviderStateMixin {
   TabController tabController;
   TextEditingController _controller = new TextEditingController();
+  Folder notesWorkingFolder;
+  Folder tasksWorkingFolder;
 
   @override
   void initState() {
+    notesWorkingFolder = widget.save.notesObj;
+    tasksWorkingFolder = widget.save.tasksObj;
     super.initState();
-    _controller.text='Untitled';
+    //_controller.text='Untitled';
     tabController = TabController(vsync: this, length: 2);
   }
 
@@ -44,81 +49,105 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
   }
 
   enterName(BuildContext context, bool isFile) {
-    String name = '';
+    bool temp;
+    bool validate = true;
+    print("validated on top: $validate");
+    _controller.text = "";
     return showDialog(
         context: context,
         barrierDismissible: true,
         builder: (context) {
-          return AlertDialog(
-            title: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "Enter ${isFile ? 'File' : 'Folder'} Name",
-              ),
-            ),
-            content: TextField(
-              controller: _controller,
-              style: TextStyle(fontSize: 20),
-              decoration: InputDecoration(
-                border: OutlineInputBorder(),
-              ),
-              autofocus: true,
-              onChanged: (text) {
-                name = text;
-              },
-            ),
-            actions: <Widget>[
-              Center(
-                child: ButtonBar(
-                  //alignment: MainAxisAlignment.spaceEvenly,
-                  mainAxisSize: MainAxisSize.max,
-                  children: <Widget>[
-                    MaterialButton(
-                      onPressed: () => {
-                        Navigator.of(context).pop(),
-                      },
-                      child: Text(
-                        'Cancel',
-                        style: TextStyle(
-                          color: Colors.tealAccent,
-                          fontSize: 18,
-                        ),
-                      ),
-                    ),
-                    MaterialButton(
-                      onPressed: () => {
-                        if (isFile)
-                          {
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                    builder: (context) => TextPage(
-                                        tabController.index == 1
-                                            ? Type.task
-                                            : Type.notes,name))),
-                            //Navigator.of(context).pop(),
-                          }
-                        else
-                          {
-                            //TODO Add method to add folder to the structure
-                            Navigator.pop(context, () {
-                              setState(() {});
-                            }),
-                          }
-                      },
-                      child: Text(
-                        'Submit',
-                        style: TextStyle(
-                          color: Colors.tealAccent,
-                          fontSize: 18,
-                        ),
-                      ),
-                    ),
-                  ],
+          return StatefulBuilder(builder: (context, setState) {
+            return AlertDialog(
+              title: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "Enter ${isFile ? 'File' : 'Folder'} Name",
                 ),
               ),
-            ],
-          );
+              content: TextField(
+                controller: _controller,
+                style: TextStyle(fontSize: 20),
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  errorText: !validate ? "Folder already exists" : null,
+                ),
+                autofocus: true,
+                autocorrect: false,
+              ),
+              actions: <Widget>[
+                Center(
+                  child: ButtonBar(
+                    //alignment: MainAxisAlignment.spaceEvenly,
+                    mainAxisSize: MainAxisSize.max,
+                    children: <Widget>[
+                      MaterialButton(
+                        onPressed: () => {
+                          Navigator.of(context).pop(),
+                        },
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(
+                            color: Colors.tealAccent,
+                            fontSize: 18,
+                          ),
+                        ),
+                      ),
+                      MaterialButton(
+                        onPressed: () async => {
+                          if (isFile)
+                            {
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => TextPage(
+                                          tabController.index == 1
+                                              ? Type.task
+                                              : Type.notes,
+                                          _controller.text))),
+                            }
+                          else //If the folder button is selected
+                            {
+                              if (tabController.index == 1)
+                                {
+                                  temp = await tasksWorkingFolder
+                                      .addFolder(_controller.text),
+                                  setState(() {
+                                    validate = temp;
+                                  }),
+                                }
+                              else
+                                {
+                                  temp = await notesWorkingFolder
+                                      .addFolder(_controller.text),
+                                  setState(() {
+                                    validate = temp;
+                                  }),
+                                },
+                              //print("Validate: $validate"),
+                              setState(() {}),
+                              if (validate)
+                                {
+                                  Navigator.pop(context, () {
+                                    setState(() {});
+                                  }),
+                                }
+                            }
+                        },
+                        child: Text(
+                          'Submit',
+                          style: TextStyle(
+                            color: Colors.tealAccent,
+                            fontSize: 18,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          });
         });
   }
 
@@ -126,13 +155,14 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     return SpeedDial(
       //backgroundColor: Colors.tealAccent,
       overlayOpacity: 0,
-      animatedIcon: AnimatedIcons.add_event,
+      animatedIcon: AnimatedIcons.menu_close,
       animatedIconTheme: IconThemeData(),
       children: [
         SpeedDialChild(
           child: Icon(Icons.note_add),
           onTap: () => {
             enterName(context, true),
+            setState(() {}),
           },
           label: 'New Note',
           labelStyle: Theme.of(context).textTheme.subtitle2,
@@ -231,8 +261,28 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
       body: TabBarView(
         controller: tabController,
         children: <Widget>[
-          Icon(Icons.card_giftcard),
-          Icon(Icons.ac_unit),
+          ListView.builder(
+            itemCount: notesWorkingFolder.list.length,
+            itemBuilder: (BuildContext context, int index) {
+              return ListTile(
+                leading: notesWorkingFolder.list[index].type == Type.folder
+                    ? Icon(Icons.folder)
+                    : Icon(Icons.note_add),
+                title: Text('${notesWorkingFolder.list[index].title}'),
+              );
+            },
+          ),
+          ListView.builder(
+            itemCount: tasksWorkingFolder.list.length,
+            itemBuilder: (BuildContext context, int index) {
+              return ListTile(
+                leading: tasksWorkingFolder.list[index].type == Type.folder
+                    ? Icon(Icons.folder)
+                    : Icon(Icons.note_add),
+                title: Text('${tasksWorkingFolder.list[index].title}'),
+              );
+            },
+          ),
         ],
       ),
       floatingActionButton: buildAddIcons(),

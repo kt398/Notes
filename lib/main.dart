@@ -30,7 +30,7 @@ class MyApp extends StatelessWidget {
 
         }
         else{
-          return SizedBox(
+          return Container(
             child: CircularProgressIndicator(),
             width: 60,
             height: 60,

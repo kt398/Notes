@@ -2,10 +2,13 @@ import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
 import 'File.dart';
+import 'package:path/path.dart' as path;
 class SaveState {
   SharedPreferences prefs;
   bool isDark; //false is light, true is dark
   Folder root;
+  Folder notesObj;
+  Folder tasksObj;
   saveState() async {
     await init();
   }
@@ -18,20 +21,27 @@ class SaveState {
       print(entity.path);
       if(entity is File){
         if(isTask){
-          object.list.add(new Task("${entity.path}","temp date"));
+          object.list.add(new Task(entity.path,"${entity.path}","temp date",entity));
         }
         else{
-          object.list.add(new Note("${entity.path}","temp date"));
+          object.list.add(new Note(entity.path,"${entity.path}","temp date",entity));
         }
       }
       else if(entity is Directory){
-        Folder temp =new Folder(entity.path,"test");
-        object.list.add(await initStruct(dir, temp, isTask));
+        print(path.basenameWithoutExtension(entity.path));
+        Folder temp =new Folder(path.basenameWithoutExtension(entity.path),"test",entity,object);
+        object.list.add(await initStruct(entity, temp, isTask));
       }
     }
     return object;
   }
+  void addFolder(String name){
+    
+  }
 
+  void addFile(){
+
+  }
 
   Future<String> get localPath async {
     Directory notes;
@@ -48,9 +58,9 @@ class SaveState {
       notes=Directory('${rootFolder.path}/Notes');
       tasks=Directory('${rootFolder.path}/Tasks');
     }
-    root=new Folder("Root","Root");
-    Folder notesObj=new Folder("Notes","Root");
-    Folder tasksObj=new Folder("Tasks","Root");
+    root=new Folder("Root","Root",rootFolder,null);
+    notesObj=new Folder("Notes","Root",notes,root);
+    tasksObj=new Folder("Tasks","Root",tasks,root);
     root.list.add(notesObj);
     root.list.add(tasksObj);
 
