@@ -6,6 +6,7 @@ import 'Settings.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'TextPage.dart';
 import 'File.dart';
+import 'Colors.dart';
 
 //TODO make lightmode pretty
 class Home extends StatefulWidget {
@@ -19,6 +20,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
   TextEditingController _controller = new TextEditingController();
   Folder notesWorkingFolder;
   Folder tasksWorkingFolder;
+  int totalSelected = 0;
 
   @override
   void initState() {
@@ -36,7 +38,6 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     tabController.dispose();
   }
 
-  bool selected = false;
   void choiceAction(String choice, SaveState save) {
     print(save.isDark);
     if (choice == Constants.Settings) {
@@ -48,15 +49,15 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     } else if (choice == Constants.Export) {}
   }
 
-  enterName(BuildContext context, bool isFile) {
+  enterName(bool isFile) {
     bool temp;
     bool validate = true;
     print("validated on top: $validate");
     _controller.text = "";
-    return showDialog(
+    showDialog(
         context: context,
         barrierDismissible: true,
-        builder: (context) {
+        builder: (BuildContext context) {
           return StatefulBuilder(builder: (context, setState) {
             return AlertDialog(
               title: Align(
@@ -128,9 +129,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                               setState(() {}),
                               if (validate)
                                 {
-                                  Navigator.pop(context, () {
-                                    setState(() {});
-                                  }),
+                                  Navigator.of(context).pop(true),
                                 }
                             }
                         },
@@ -148,12 +147,16 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
               ],
             );
           });
-        });
+        }).then((value) {
+      setState(() {});
+    });
   }
 
   SpeedDial buildAddIcons() {
+    bool temp = true;
     return SpeedDial(
       //backgroundColor: Colors.tealAccent,
+      visible: totalSelected<1?true:false,
       overlayOpacity: 0,
       animatedIcon: AnimatedIcons.menu_close,
       animatedIconTheme: IconThemeData(),
@@ -161,8 +164,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
         SpeedDialChild(
           child: Icon(Icons.note_add),
           onTap: () => {
-            enterName(context, true),
-            setState(() {}),
+            enterName(true),
           },
           label: 'New Note',
           labelStyle: Theme.of(context).textTheme.subtitle2,
@@ -170,7 +172,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
         SpeedDialChild(
           child: Icon(Icons.folder),
           onTap: () => {
-            enterName(context, false),
+            enterName(false),
           },
           label: "New Folder",
           labelStyle: Theme.of(context).textTheme.subtitle2,
@@ -183,7 +185,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     return Scaffold(
       //TODO Hide appbar on scrollup
       //TODO Change appbar on selected
-      appBar: new AppBar(
+      appBar: totalSelected<1?new AppBar(
         backgroundColor: Theme.of(context).appBarTheme.color,
         title: TabBar(
           controller: tabController,
@@ -257,6 +259,20 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 }),
           ),
         ],
+      )
+      :new AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            setState((){
+              totalSelected=0;
+              notesWorkingFolder.deselectAll();
+              tasksWorkingFolder.deselectAll();
+            });
+          },
+        ),
+        title: Text('$totalSelected Selected'),
+
       ),
       body: TabBarView(
         controller: tabController,
@@ -264,11 +280,56 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
           ListView.builder(
             itemCount: notesWorkingFolder.list.length,
             itemBuilder: (BuildContext context, int index) {
-              return ListTile(
-                leading: notesWorkingFolder.list[index].type == Type.folder
-                    ? Icon(Icons.folder)
-                    : Icon(Icons.note_add),
-                title: Text('${notesWorkingFolder.list[index].title}'),
+              return Card(
+                color: !notesWorkingFolder.list[index].selected?darkBackground: Color(0xff1b262c),
+                elevation: !notesWorkingFolder.list[index].selected ? 1 : 1,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                margin: const EdgeInsets.fromLTRB(15, 8, 15, 0),
+                shadowColor: Colors.transparent,
+                child: ListTileTheme(
+                  dense: false,
+                  selectedColor: Colors.white,
+                  child: ListTile(
+                    selected: notesWorkingFolder.list[index].selected,
+                    leading: Icon(
+                      notesWorkingFolder.list[index].type == Type.folder
+                          ? Icons.folder
+                          : Icons.note_add,
+                      size: 40,
+                    ),
+                    onTap: () {
+                      if (totalSelected > 0) {
+                        if (notesWorkingFolder.list[index].selected) {
+                          totalSelected--;
+                        } else {
+                          totalSelected++;
+                        }
+                        setState(() {
+                          notesWorkingFolder.list[index].selected =
+                              !notesWorkingFolder.list[index].selected;
+                        });
+                      }
+                      else{
+
+                      }
+                    },
+                    onLongPress: () {
+                      if (notesWorkingFolder.list[index].selected) {
+                        totalSelected--;
+                      } else {
+                        totalSelected++;
+                      }
+                      setState(() {
+                        notesWorkingFolder.list[index].selected =
+                            !notesWorkingFolder.list[index].selected;
+                      });
+                      print(totalSelected);
+                    },
+                    title: Text('${notesWorkingFolder.list[index].title}'),
+                    subtitle: Text('test'),
+                  ),
+                ),
               );
             },
           ),

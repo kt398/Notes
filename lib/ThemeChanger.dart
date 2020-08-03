@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'Colors.dart';
 
 class ThemeChanger with ChangeNotifier {
   ThemeData _themeData;
@@ -15,7 +16,33 @@ class ThemeChanger with ChangeNotifier {
 
   static ThemeData darkTheme() {
     return ThemeData(
-      //fontFamily: 'roboto',
+      applyElevationOverlayColor: true,
+      splashColor: Colors.transparent,
+      highlightColor: Colors.transparent,
+      cardTheme: CardTheme(
+        elevation: 1,
+      ),
+      primaryColor: darkPrimary,
+      scaffoldBackgroundColor: darkBackground,
+      backgroundColor: darkBackground,
+      colorScheme: ColorScheme.dark(
+        primary: darkPrimary,
+        primaryVariant: darkPrimaryVariant,
+        secondary: darkSecondary,
+        surface: darkSurface,
+        background: darkBackground,
+        error: darkError,
+        onPrimary: darkonPrimary,
+        onSecondary: darkonSecondary,
+        onSurface: darkonSurface,
+        onBackground: darkonBackGround,
+        onError: darkonError,
+        brightness: Brightness.dark,
+      ),
+      appBarTheme: AppBarTheme(
+        elevation: 4,
+        color: darkBackground,
+      ),
       brightness: Brightness.dark,
       textTheme: TextTheme(
           headline1: GoogleFonts.roboto(
@@ -42,8 +69,9 @@ class ThemeChanger with ChangeNotifier {
         color: Colors.white,
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        foregroundColor: Colors.black,
-        backgroundColor: Colors.tealAccent,
+        elevation: 8,
+        foregroundColor: darkonSecondary,
+        backgroundColor: darkSecondary,
       ),
     );
   }
