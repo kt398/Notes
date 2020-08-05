@@ -10,7 +10,7 @@ import 'Colors.dart';
 
 //TODO make lightmode pretty
 class Home extends StatefulWidget {
-  SaveState save;
+  final SaveState save;
   Home(this.save);
   HomeState createState() => HomeState();
 }
@@ -18,10 +18,11 @@ class Home extends StatefulWidget {
 class HomeState extends State<Home> with SingleTickerProviderStateMixin {
   TabController tabController;
   TextEditingController _controller = new TextEditingController();
-  TextEditingController renameController=new TextEditingController();
+  TextEditingController renameController = new TextEditingController();
   Folder notesWorkingFolder;
   Folder tasksWorkingFolder;
   int totalSelected = 0;
+  int firstIndex = -1;
 
   @override
   void initState() {
@@ -53,11 +54,14 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
   void selectedMenuChoice(String choice) {
     if (choice == Constants.Delete) {
     } else if (choice == Constants.Move) {
-    } else if (choice == Constants.Rename) {}
+    } else if (choice == Constants.Rename) {
+      renameAlertDialog(firstIndex);
+    }
   }
 
-  Widget renameAlertDialog() {
-    bool validate=true;
+  renameAlertDialog(int index) {
+    renameController.text='';
+    bool validate = true;
     showDialog(
         context: context,
         barrierDismissible: true,
@@ -67,27 +71,73 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
               title: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Enter Name',
+                  'Enter New Name',
                 ),
-              
               ),
               content: TextField(
                 controller: renameController,
                 style: TextStyle(fontSize: 20),
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
-                  errorText: !validate? "Folder Name Already exists" : null,
+                  errorText: !validate ? "Folder Name Already exists" : null,
                 ),
-
-
-
-
+                autofocus: true,
+                autocorrect: false,
               ),
-
-
+              actions: <Widget>[
+                Center(
+                  child: ButtonBar(
+                    //alignment: MainAxisAlignment.spaceEvenly,
+                    mainAxisSize: MainAxisSize.max,
+                    children: <Widget>[
+                      MaterialButton(
+                        onPressed: () => {
+                          Navigator.of(context).pop(),
+                        },
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(
+                            color: Colors.tealAccent,
+                            fontSize: 18,
+                          ),
+                        ),
+                      ),
+                      MaterialButton(
+                        onPressed: () async => {
+                          if (await notesWorkingFolder.list[index]
+                              .renameFile(renameController.text))
+                            {
+                              totalSelected = 0,
+                              Navigator.of(context).pop(),
+                            }
+                          else
+                            {
+                              setState(() {
+                                validate = false;
+                              }),
+                            }
+                        },
+                        child: Text(
+                          'Submit',
+                          style: TextStyle(
+                            color: Colors.tealAccent,
+                            fontSize: 18,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             );
           });
+        }
+      ).then((value) {
+        setState(() {
+          notesWorkingFolder.deselectAll();
+          tasksWorkingFolder.deselectAll();
         });
+      });
   }
 
   enterName(bool isFile) {
@@ -111,7 +161,8 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 style: TextStyle(fontSize: 20),
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
-                  errorText: !validate ? "Folder already exists" : null,
+                  errorBorder: OutlineInputBorder(borderSide: BorderSide(color: Theme.of(context).colorScheme.error)),
+                  errorText: !validate ? "Name already exists" : null,
                 ),
                 autofocus: true,
                 autocorrect: false,
@@ -165,7 +216,6 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                     validate = temp;
                                   }),
                                 },
-                              //print("Validate: $validate"),
                               setState(() {}),
                               if (validate)
                                 {
@@ -193,7 +243,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
   }
 
   SpeedDial buildAddIcons() {
-    bool temp = true;
+    //bool temp = true;
     return SpeedDial(
       //backgroundColor: Colors.tealAccent,
       visible: totalSelected < 1 ? true : false,
@@ -316,27 +366,34 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
               actions: <Widget>[
                 PopupMenuTheme(
                   data: Theme.of(context).popupMenuTheme,
-                  child: PopupMenuButton(
+                  child: PopupMenuButton<String>(
                     icon: Icon(Icons.more_vert),
                     onSelected: (choice) {
                       selectedMenuChoice(choice);
                     },
                     itemBuilder: (context) {
-                      var list = List<PopupMenuEntry<String>>();
-                      list.add(PopupMenuItem(
-                        child: Text('Delete'),
+                      var l2 = List<PopupMenuEntry<String>>();
+                      l2.add(PopupMenuItem(
+                        child: Text(Constants.Delete),
+                        value: Constants.Delete,
                       ));
-                      list.add(PopupMenuDivider(
+                      l2.add(PopupMenuDivider(
                         height: 10,
                       ));
-                      list.add(PopupMenuItem(child: Text("Move")));
+                      l2.add(PopupMenuItem(
+                        child: Text(Constants.Move),
+                        value: Constants.Move,
+                      ));
                       if (totalSelected == 1) {
-                        list.add(PopupMenuDivider(
+                        l2.add(PopupMenuDivider(
                           height: 10,
                         ));
-                        list.add(PopupMenuItem(child: Text("Rename")));
+                        l2.add(PopupMenuItem(
+                          child: Text(Constants.Rename),
+                          value: Constants.Rename,
+                        ));
                       }
-                      return list;
+                      return l2;
                     },
                   ),
                 )
@@ -379,7 +436,10 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           notesWorkingFolder.list[index].selected =
                               !notesWorkingFolder.list[index].selected;
                         });
-                      } else {}
+                      } else {
+                        //Open the note/task
+
+                      }
                     },
                     onLongPress: () {
                       if (notesWorkingFolder.list[index].selected) {
@@ -387,11 +447,17 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       } else {
                         totalSelected++;
                       }
+                      if (totalSelected == 1) {
+                        firstIndex = index;
+                      }
+                      if (totalSelected == 0) {
+                        firstIndex = -1;
+                      }
                       setState(() {
                         notesWorkingFolder.list[index].selected =
                             !notesWorkingFolder.list[index].selected;
                       });
-                      print(totalSelected);
+                      //print(totalSelected);
                     },
                     title: Text('${notesWorkingFolder.list[index].title}'),
                     subtitle: Text('test'),

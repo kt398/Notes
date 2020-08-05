@@ -2,12 +2,11 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'saveState.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'ThemeChanger.dart';
 import 'package:provider/provider.dart';
 
 class Settings extends StatefulWidget{
-  SaveState save;
+  final SaveState save;
   Settings(this.save);
   @override
   SettingState createState() => SettingState();

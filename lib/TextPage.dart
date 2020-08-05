@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'File.dart';
 
 class TextPage extends StatefulWidget {
-  Type type;
-  String title;
+  final Type type;
+  final String title;
   TextPage(this.type, this.title);
   TextPageState createState() => TextPageState();
 }

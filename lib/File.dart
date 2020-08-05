@@ -1,4 +1,3 @@
-import 'package:notes/Constants.dart';
 import 'dart:io';
 
 enum Type { notes, task, folder }
@@ -10,24 +9,29 @@ class Files {
   bool selected;
   FileSystemEntity entity;
   Files(this.title, this.dateModified, this.selected, this.type, this.entity);
-  bool fileExists(String name) {
-    if ((FileSystemEntity.type('${entity.path}/$name') !=
+
+  Future<bool> fileExists(String name) async {
+    if ((await FileSystemEntity.type('${entity.parent.path}/$name') !=
         FileSystemEntityType.notFound)) {
       return true;
     }
     return false;
   }
-  Future<bool> renameFile(String name) async{
-    if(fileExists(name)){
+
+  Future<bool> renameFile(String newName) async {
+    print("Path:");
+    print(entity.path);
+    if (await fileExists(newName)) {
       return false;
     }
-    else{
-      return true;
-    }
+    title=newName;
+    entity=await entity.rename('${entity.parent.path}/$newName');
+    return true;
   }
 
-  Future<FileSystemEntityType> getType(String name)async{
-    FileSystemEntityType type= await FileSystemEntity.type('${entity.path}/$name');
+  Future<FileSystemEntityType> getType(String name) async {
+    FileSystemEntityType type =
+        await FileSystemEntity.type('${entity.path}/$name');
     return type;
   }
 }
@@ -40,7 +44,7 @@ class Note extends Files {
 class Task extends Files {
   String date;
   Task(String path, String title, String dateModified, File file)
-      : super(title, dateModified, false, Type.task, file) {}
+      : super(title, dateModified, false, Type.task, file);
 }
 
 class Folder extends Files {

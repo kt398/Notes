@@ -43,7 +43,7 @@ class MyApp extends StatelessWidget {
 
 
 class MaterialAppWithTheme extends StatelessWidget {
-  SaveState save;
+  final SaveState save;
   MaterialAppWithTheme(this.save);
 
   @override

@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
-
 
 //darks
 const Color darkPrimary=Color(0xffBB86FC);
