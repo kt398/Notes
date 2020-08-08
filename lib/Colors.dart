@@ -21,7 +21,7 @@ const Color darkonError=Color(0x000000);
 
 //lights
 const Color lightPrimary=Color(0xff6200EE);
-const Color lightPrimaryVariant=Color(0xff018786);
+const Color lightPrimaryVariant=Color(0xff3700B3);
 const Color lightSecondary=Color(0xff03DAC6);
 const Color lightSecondaryVariant=Color(0xff018786);
 const Color lightBackground=Color(0xFFFFFFFF);

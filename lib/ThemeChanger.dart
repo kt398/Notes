@@ -78,30 +78,65 @@ class ThemeChanger with ChangeNotifier {
 
   static ThemeData lightTheme() {
     return ThemeData(
-      brightness: Brightness.light,
-      textTheme: TextTheme(
-        headline1: GoogleFonts.roboto(
-          color: Colors.white,
-          fontSize: 24,
-          letterSpacing: 0,
-        ),
-        bodyText1: GoogleFonts.roboto(
-          color: Colors.black,
-          fontSize: 20,
-          letterSpacing: 0,
-        ),
-        bodyText2: GoogleFonts.roboto(
-          color: Colors.white,
-          fontSize: 22,
-          letterSpacing: 0,
-        ),
+      applyElevationOverlayColor: false,
+      splashColor: Colors.transparent,
+      highlightColor: Colors.transparent,
+      cardTheme: CardTheme(
+        elevation: 1,
       ),
+      //primaryColor: darkPrimary,
+      //scaffoldBackgroundColor: darkBackground,
+      //backgroundColor: darkBackground,
+      colorScheme: ColorScheme(
+        primary: lightPrimary,
+        primaryVariant: lightPrimaryVariant,
+        secondary: lightSecondary,
+        secondaryVariant: lightSecondary,
+        surface: lightSurface,
+        background: lightBackground,
+        error: lightError,
+        onPrimary: lightonPrimary,
+        onSecondary: lightonSecondary,
+        onSurface: lightonSurface,
+        onBackground: lightonBackGround,
+        onError: lightonError,
+        brightness: Brightness.light,
+      ),
+      appBarTheme: AppBarTheme(
+        elevation: 4,
+        color: lightPrimary,
+      ),
+      textTheme: TextTheme(
+          headline1: GoogleFonts.roboto(
+            color: Colors.white,
+            fontSize: 24,
+            letterSpacing: 0,
+            fontWeight: FontWeight.bold,
+          ),
+          bodyText1: GoogleFonts.roboto(
+            color: Colors.white,
+            fontSize: 20,
+            letterSpacing: 0,
+            fontWeight: FontWeight.bold,
+
+          ),
+          bodyText2: GoogleFonts.roboto(
+            color: Colors.white,
+            fontSize: 22,
+            letterSpacing: 0,
+          ),
+          subtitle2: GoogleFonts.roboto(
+            color: Colors.black,
+            fontSize: 18,
+            letterSpacing: 0,
+          )),
       iconTheme: IconThemeData(
         color: Colors.white,
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        foregroundColor: Colors.white,
-        backgroundColor: Colors.blue,
+        elevation: 8,
+        foregroundColor: lightonSecondary,
+        backgroundColor: lightSecondary,
       ),
     );
   }

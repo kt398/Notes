@@ -21,10 +21,10 @@ class SaveState {
       //print(entity.path);
       if(entity is File){
         if(isTask){
-          object.list.add(new Task(entity.path,"${entity.path}","temp date",entity));
+          object.list.add(new Task(entity.path,path.basenameWithoutExtension(entity.path),"temp date",entity,await entity.readAsString()));
         }
         else{
-          object.list.add(new Note(entity.path,"${entity.path}","temp date",entity));
+          object.list.add(new Note(entity.path,path.basenameWithoutExtension(entity.path),"temp date",entity,await entity.readAsString()));
         }
       }
       else if(entity is Directory){

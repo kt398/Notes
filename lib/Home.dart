@@ -6,7 +6,6 @@ import 'Settings.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'TextPage.dart';
 import 'File.dart';
-import 'Colors.dart';
 
 //TODO make lightmode pretty
 class Home extends StatefulWidget {
@@ -33,6 +32,45 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     tabController = TabController(vsync: this, length: 2);
   }
 
+  void deleteAlertDialog() {
+    showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (BuildContext context) {
+          return StatefulBuilder(builder:(context,setState){
+            return AlertDialog(
+              content: Text("Delete selected ${totalSelected>1?"item":'items'}"),
+              actions: <Widget>[
+                MaterialButton(
+                  child: Text("Cancel"),
+                  onPressed: (){
+                    Navigator.of(context).pop();
+                  },
+                ),
+                MaterialButton(
+                  child: Text("Confirm"),
+                  
+                  onPressed:() async{
+                    await notesWorkingFolder.deleteSelected();
+                    await tasksWorkingFolder.deleteSelected();
+                    totalSelected=0;
+                    Navigator.of(context).pop();
+                  } 
+                ),
+              ],
+            );
+          });
+          }
+
+
+
+        ).then((value) {
+          setState(() {
+            print("End");
+          });
+        });
+  }
+
   @override
   void dispose() {
     super.dispose();
@@ -53,6 +91,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
   void selectedMenuChoice(String choice) {
     if (choice == Constants.Delete) {
+      deleteAlertDialog();
     } else if (choice == Constants.Move) {
     } else if (choice == Constants.Rename) {
       renameAlertDialog(firstIndex);
@@ -60,7 +99,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
   }
 
   renameAlertDialog(int index) {
-    renameController.text='';
+    renameController.text = '';
     bool validate = true;
     showDialog(
         context: context,
@@ -131,13 +170,12 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
               ],
             );
           });
-        }
-      ).then((value) {
-        setState(() {
-          notesWorkingFolder.deselectAll();
-          tasksWorkingFolder.deselectAll();
-        });
+        }).then((value) {
+      setState(() {
+        notesWorkingFolder.deselectAll();
+        tasksWorkingFolder.deselectAll();
       });
+    });
   }
 
   enterName(bool isFile) {
@@ -161,7 +199,9 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 style: TextStyle(fontSize: 20),
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
-                  errorBorder: OutlineInputBorder(borderSide: BorderSide(color: Theme.of(context).colorScheme.error)),
+                  errorBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                          color: Theme.of(context).colorScheme.error)),
                   errorText: !validate ? "Name already exists" : null,
                 ),
                 autofocus: true,
@@ -189,13 +229,29 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         onPressed: () async => {
                           if (isFile)
                             {
+                              if (tabController.index == 1)
+                                {
+                                  tasksWorkingFolder.addFile(
+                                      _controller.text, Type.task),
+                                }
+                              else
+                                {
+                                  notesWorkingFolder.addFile(
+                                      _controller.text, Type.notes),
+                                },
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) => TextPage(
                                           tabController.index == 1
-                                              ? Type.task
-                                              : Type.notes,
+                                              ? tasksWorkingFolder.list[
+                                                  tasksWorkingFolder
+                                                          .list.length -
+                                                      1]
+                                              : notesWorkingFolder.list[
+                                                  notesWorkingFolder
+                                                          .list.length -
+                                                      1],
                                           _controller.text))),
                             }
                           else //If the folder button is selected
@@ -245,7 +301,8 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
   SpeedDial buildAddIcons() {
     //bool temp = true;
     return SpeedDial(
-      //backgroundColor: Colors.tealAccent,
+      backgroundColor:
+          Theme.of(context).floatingActionButtonTheme.backgroundColor,
       visible: totalSelected < 1 ? true : false,
       overlayOpacity: 0,
       animatedIcon: AnimatedIcons.menu_close,
@@ -277,9 +334,12 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
       //TODO Change appbar on selected
       appBar: totalSelected < 1
           ? new AppBar(
+              //Appbar when none of the cards are selected
               backgroundColor: Theme.of(context).appBarTheme.color,
               title: TabBar(
                 controller: tabController,
+                indicatorColor: Theme.of(context).colorScheme.secondary,
+                //indicatorColor: Colors.black,
                 tabs: <Widget>[
                   Tab(
                     child: Text(
@@ -352,8 +412,12 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
               ],
             )
           : new AppBar(
+              //Appbar when at least one card is selected
               leading: IconButton(
-                icon: Icon(Icons.arrow_back),
+                icon: Icon(
+                  Icons.arrow_back,
+                  color: Theme.of(context).iconTheme.color,
+                ),
                 onPressed: () {
                   setState(() {
                     totalSelected = 0;
@@ -362,7 +426,10 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   });
                 },
               ),
-              title: Text('$totalSelected Selected'),
+              title: Text(
+                '$totalSelected Selected',
+                style: Theme.of(context).textTheme.bodyText2,
+              ),
               actions: <Widget>[
                 PopupMenuTheme(
                   data: Theme.of(context).popupMenuTheme,
@@ -396,7 +463,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       return l2;
                     },
                   ),
-                )
+                ),
               ],
             ),
       body: TabBarView(
@@ -407,8 +474,8 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
             itemBuilder: (BuildContext context, int index) {
               return Card(
                 color: !notesWorkingFolder.list[index].selected
-                    ? darkBackground
-                    : Color(0xff1b262c),
+                    ? Theme.of(context).colorScheme.background
+                    : Theme.of(context).colorScheme.primaryVariant,
                 elevation: !notesWorkingFolder.list[index].selected ? 1 : 1,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10)),
@@ -436,9 +503,30 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           notesWorkingFolder.list[index].selected =
                               !notesWorkingFolder.list[index].selected;
                         });
-                      } else {
-                        //Open the note/task
-
+                      } else if (tabController.index == 1) {
+                        if (tasksWorkingFolder.list[index].type ==
+                            Type.folder) {
+                        } else {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => TextPage(
+                                    tasksWorkingFolder.list[index],
+                                    tasksWorkingFolder.list[index].title)),
+                          );
+                        }
+                      } else if (tabController.index == 0) {
+                        if (notesWorkingFolder.list[index].type ==
+                            Type.folder) {
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => TextPage(
+                                    notesWorkingFolder.list[index],
+                                    notesWorkingFolder.list[index].title)),
+                          );
+                        }
                       }
                     },
                     onLongPress: () {
