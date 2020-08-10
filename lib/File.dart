@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:path/path.dart' as GetName;
 
 enum Type { notes, task, folder }
 
@@ -52,7 +53,8 @@ class Folder extends Files {
   Folder parentFolder;
   String name;
   List<Files> list;
-  Folder(String title, String dateModified, Directory dir, this.parentFolder)
+  String path;
+  Folder(String title, String dateModified, Directory dir, this.parentFolder,this.path)
       : super(title, dateModified, false, Type.folder, dir,'') {
     list = new List<Files>();
     selected = false;
@@ -68,7 +70,7 @@ class Folder extends Files {
       return false;
     }));
 
-    this.list.add(new Folder(name, 'test', tempDir, this));
+    this.list.add(new Folder(name, 'test', tempDir, this,'$path/${GetName.basenameWithoutExtension(entity.path)}'));
     return true;
   }
 
@@ -83,14 +85,14 @@ class Folder extends Files {
 
         case Type.notes:
           {
-            File f = await File('${entity.path}/$name.txt').create(recursive: false);
+            File f = await File('${entity.path}/$name.json').create(recursive: false);
             this.list.add(new Note(f.path,name,"temp date",f,await f.readAsString()));
           }
           break;
 
         case Type.task:
           {
-            File f = await File('${entity.path}/$name.txt').create(recursive: false);
+            File f = await File('${entity.path}/$name.json').create(recursive: false);
             this.list.add(new Task(f.path,name,"temp date",f,await f.readAsString()));
           }
           break;
@@ -103,7 +105,7 @@ class Folder extends Files {
   Future<bool> deleteSelected() async {
     for(int i=0;i<list.length;i++){
       if(list[i].selected){
-        await list[i].entity.delete();
+        await list[i].entity.delete(recursive: true);
         list[i]=null;
         list.removeAt(i);
         i--;

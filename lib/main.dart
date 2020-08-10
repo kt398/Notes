@@ -53,6 +53,11 @@ class MaterialAppWithTheme extends StatelessWidget {
     return MaterialApp(
       home: Home(save),
       theme: theme.getTheme(),
+      routes: {
+        '/home':(context)=> Home(save),
+
+
+      },
     );
   }
 }

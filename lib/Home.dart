@@ -22,9 +22,11 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
   Folder tasksWorkingFolder;
   int totalSelected = 0;
   int firstIndex = -1;
+  int rootDirectory;
 
   @override
   void initState() {
+    rootDirectory = 0;
     notesWorkingFolder = widget.save.notesObj;
     tasksWorkingFolder = widget.save.tasksObj;
     super.initState();
@@ -37,38 +39,33 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
         context: context,
         barrierDismissible: true,
         builder: (BuildContext context) {
-          return StatefulBuilder(builder:(context,setState){
+          return StatefulBuilder(builder: (context, setState) {
             return AlertDialog(
-              content: Text("Delete selected ${totalSelected>1?"item":'items'}"),
+              content: Text(
+                  "Delete selected ${totalSelected > 1 ? "item" : 'items'}"),
               actions: <Widget>[
                 MaterialButton(
                   child: Text("Cancel"),
-                  onPressed: (){
+                  onPressed: () {
                     Navigator.of(context).pop();
                   },
                 ),
                 MaterialButton(
-                  child: Text("Confirm"),
-                  
-                  onPressed:() async{
-                    await notesWorkingFolder.deleteSelected();
-                    await tasksWorkingFolder.deleteSelected();
-                    totalSelected=0;
-                    Navigator.of(context).pop();
-                  } 
-                ),
+                    child: Text("Confirm"),
+                    onPressed: () async {
+                      await notesWorkingFolder.deleteSelected();
+                      await tasksWorkingFolder.deleteSelected();
+                      totalSelected = 0;
+                      Navigator.of(context).pop();
+                    }),
               ],
             );
           });
-          }
-
-
-
-        ).then((value) {
-          setState(() {
-            print("End");
-          });
-        });
+        }).then((value) {
+      setState(() {
+        print("End");
+      });
+    });
   }
 
   @override
@@ -231,12 +228,12 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                             {
                               if (tabController.index == 1)
                                 {
-                                  tasksWorkingFolder.addFile(
+                                  await tasksWorkingFolder.addFile(
                                       _controller.text, Type.task),
                                 }
                               else
                                 {
-                                  notesWorkingFolder.addFile(
+                                  await notesWorkingFolder.addFile(
                                       _controller.text, Type.notes),
                                 },
                               Navigator.push(
@@ -328,145 +325,178 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     );
   }
 
+  List<Widget> popupMenu() {
+    return <Widget>[
+      PopupMenuTheme(
+        data: Theme.of(context).popupMenuTheme,
+        child: PopupMenuButton<String>(
+            //color: Theme.of(context).appBarTheme.color,
+            //color: Colors.white,
+            icon: IconTheme(
+              data: Theme.of(context).iconTheme,
+              child: Icon(
+                Icons.more_vert,
+              ),
+            ),
+            onSelected: (choice) {
+              choiceAction(choice, widget.save);
+            },
+            itemBuilder: (context) {
+              var list = List<PopupMenuEntry<String>>();
+              list.add(
+                PopupMenuItem(
+                  child: Text(
+                    Constants.Settings,
+                  ),
+                  value: Constants.Settings,
+                ),
+              );
+              list.add(
+                PopupMenuDivider(
+                  height: 10,
+                ),
+              );
+              list.add(
+                PopupMenuItem(
+                  child: Text(
+                    Constants.Import,
+                  ),
+                  value: Constants.Import,
+                ),
+              );
+              list.add(
+                PopupMenuDivider(
+                  height: 10,
+                ),
+              );
+              list.add(
+                PopupMenuItem(
+                  child: Text(
+                    Constants.Export,
+                  ),
+                  value: Constants.Export,
+                ),
+              );
+              return list;
+            }),
+      ),
+    ];
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       //TODO Hide appbar on scrollup
       //TODO Change appbar on selected
-      appBar: totalSelected < 1
+      appBar: rootDirectory != 0 && totalSelected==0
           ? new AppBar(
-              //Appbar when none of the cards are selected
-              backgroundColor: Theme.of(context).appBarTheme.color,
-              title: TabBar(
-                controller: tabController,
-                indicatorColor: Theme.of(context).colorScheme.secondary,
-                //indicatorColor: Colors.black,
-                tabs: <Widget>[
-                  Tab(
-                    child: Text(
-                      'Notes',
-                      style: Theme.of(context).textTheme.bodyText2,
-                    ),
-                  ),
-                  Tab(
-                    child: Text(
-                      'Tasks',
-                      style: Theme.of(context).textTheme.bodyText2,
-                    ),
-                  ),
-                ],
-              ),
-              actions: <Widget>[
-                PopupMenuTheme(
-                  data: Theme.of(context).popupMenuTheme,
-                  child: PopupMenuButton<String>(
-                      //color: Theme.of(context).appBarTheme.color,
-                      //color: Colors.white,
-                      icon: IconTheme(
-                        data: Theme.of(context).iconTheme,
-                        child: Icon(
-                          Icons.more_vert,
-                        ),
-                      ),
-                      onSelected: (choice) {
-                        choiceAction(choice, widget.save);
-                      },
-                      itemBuilder: (context) {
-                        var list = List<PopupMenuEntry<String>>();
-                        list.add(
-                          PopupMenuItem(
-                            child: Text(
-                              Constants.Settings,
-                            ),
-                            value: Constants.Settings,
-                          ),
-                        );
-                        list.add(
-                          PopupMenuDivider(
-                            height: 10,
-                          ),
-                        );
-                        list.add(
-                          PopupMenuItem(
-                            child: Text(
-                              Constants.Import,
-                            ),
-                            value: Constants.Import,
-                          ),
-                        );
-                        list.add(
-                          PopupMenuDivider(
-                            height: 10,
-                          ),
-                        );
-                        list.add(
-                          PopupMenuItem(
-                            child: Text(
-                              Constants.Export,
-                            ),
-                            value: Constants.Export,
-                          ),
-                        );
-                        return list;
-                      }),
-                ),
-              ],
-            )
-          : new AppBar(
-              //Appbar when at least one card is selected
               leading: IconButton(
-                icon: Icon(
-                  Icons.arrow_back,
-                  color: Theme.of(context).iconTheme.color,
-                ),
+                icon: Icon(Icons.arrow_back,color: Theme.of(context).iconTheme.color),
                 onPressed: () {
-                  setState(() {
-                    totalSelected = 0;
-                    notesWorkingFolder.deselectAll();
-                    tasksWorkingFolder.deselectAll();
-                  });
+                  if (tabController.index == 0) {
+                    setState(() {
+                      rootDirectory--;
+                      notesWorkingFolder = notesWorkingFolder.parentFolder;
+                    });
+                  }
                 },
               ),
               title: Text(
-                '$totalSelected Selected',
-                style: Theme.of(context).textTheme.bodyText2,
+                notesWorkingFolder.path,
+                textDirection: TextDirection.rtl,
+                overflow: TextOverflow.fade,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyText2
+                    .copyWith(color: Theme.of(context).colorScheme.onPrimary,fontSize: 16),
               ),
-              actions: <Widget>[
-                PopupMenuTheme(
-                  data: Theme.of(context).popupMenuTheme,
-                  child: PopupMenuButton<String>(
-                    icon: Icon(Icons.more_vert),
-                    onSelected: (choice) {
-                      selectedMenuChoice(choice);
-                    },
-                    itemBuilder: (context) {
-                      var l2 = List<PopupMenuEntry<String>>();
-                      l2.add(PopupMenuItem(
-                        child: Text(Constants.Delete),
-                        value: Constants.Delete,
-                      ));
-                      l2.add(PopupMenuDivider(
-                        height: 10,
-                      ));
-                      l2.add(PopupMenuItem(
-                        child: Text(Constants.Move),
-                        value: Constants.Move,
-                      ));
-                      if (totalSelected == 1) {
-                        l2.add(PopupMenuDivider(
-                          height: 10,
-                        ));
-                        l2.add(PopupMenuItem(
-                          child: Text(Constants.Rename),
-                          value: Constants.Rename,
-                        ));
-                      }
-                      return l2;
+              actions: popupMenu(),
+            )
+          : totalSelected < 1
+              ? new AppBar(
+                  //Appbar when none of the cards are selected
+                  backgroundColor: Theme.of(context).appBarTheme.color,
+                  title: TabBar(
+                    //physics: NeverScrollableScrollPhysics(),
+                    controller: tabController,
+                    indicatorColor: Theme.of(context).colorScheme.secondary,
+                    tabs: <Widget>[
+                      Tab(
+                        child: Text(
+                          'Notes',
+                          style: Theme.of(context).textTheme.bodyText2.copyWith(
+                              color: Theme.of(context).colorScheme.onPrimary),
+                        ),
+                      ),
+                      Tab(
+                        child: Text(
+                          'Tasks',
+                          style: Theme.of(context).textTheme.bodyText2.copyWith(
+                              color: Theme.of(context).colorScheme.onPrimary),
+                        ),
+                      ),
+                    ],
+                  ),
+                  actions: popupMenu(),
+                )
+              : new AppBar(
+                  //Appbar when at least one card is selected
+                  leading: IconButton(
+                    icon: Icon(
+                      Icons.arrow_back,
+                      color: Theme.of(context).iconTheme.color,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        totalSelected = 0;
+                        notesWorkingFolder.deselectAll();
+                        tasksWorkingFolder.deselectAll();
+                      });
                     },
                   ),
+                  title: Text(
+                    '$totalSelected Selected',
+                    style: Theme.of(context).textTheme.bodyText2,
+                  ),
+                  actions: <Widget>[
+                    PopupMenuTheme(
+                      data: Theme.of(context).popupMenuTheme,
+                      child: PopupMenuButton<String>(
+                        icon: Icon(Icons.more_vert),
+                        onSelected: (choice) {
+                          selectedMenuChoice(choice);
+                        },
+                        itemBuilder: (context) {
+                          var l2 = List<PopupMenuEntry<String>>();
+                          l2.add(PopupMenuItem(
+                            child: Text(Constants.Delete),
+                            value: Constants.Delete,
+                          ));
+                          l2.add(PopupMenuDivider(
+                            height: 10,
+                          ));
+                          l2.add(PopupMenuItem(
+                            child: Text(Constants.Move),
+                            value: Constants.Move,
+                          ));
+                          if (totalSelected == 1) {
+                            l2.add(PopupMenuDivider(
+                              height: 10,
+                            ));
+                            l2.add(PopupMenuItem(
+                              child: Text(Constants.Rename),
+                              value: Constants.Rename,
+                            ));
+                          }
+                          return l2;
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
       body: TabBarView(
+        physics: totalSelected > 0 || rootDirectory != 0
+            ? NeverScrollableScrollPhysics()
+            : null,
         controller: tabController,
         children: <Widget>[
           ListView.builder(
@@ -506,6 +536,8 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       } else if (tabController.index == 1) {
                         if (tasksWorkingFolder.list[index].type ==
                             Type.folder) {
+                          tasksWorkingFolder = tasksWorkingFolder.list[index];
+                          rootDirectory++;
                         } else {
                           Navigator.pushReplacement(
                             context,
@@ -518,6 +550,10 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       } else if (tabController.index == 0) {
                         if (notesWorkingFolder.list[index].type ==
                             Type.folder) {
+                          setState(() {
+                            rootDirectory++;
+                            notesWorkingFolder = notesWorkingFolder.list[index];
+                          });
                         } else {
                           Navigator.push(
                             context,

@@ -32,7 +32,7 @@ class ThemeChanger with ChangeNotifier {
         surface: darkSurface,
         background: darkBackground,
         error: darkError,
-        onPrimary: darkonPrimary,
+        onPrimary: darkonBackGround,
         onSecondary: darkonSecondary,
         onSurface: darkonSurface,
         onBackground: darkonBackGround,
@@ -84,9 +84,10 @@ class ThemeChanger with ChangeNotifier {
       cardTheme: CardTheme(
         elevation: 1,
       ),
-      //primaryColor: darkPrimary,
-      //scaffoldBackgroundColor: darkBackground,
-      //backgroundColor: darkBackground,
+      primaryColor: lightPrimary,
+      scaffoldBackgroundColor: lightBackground,
+      backgroundColor: lightBackground,
+      brightness: Brightness.light,
       colorScheme: ColorScheme(
         primary: lightPrimary,
         primaryVariant: lightPrimaryVariant,
@@ -118,10 +119,9 @@ class ThemeChanger with ChangeNotifier {
             fontSize: 20,
             letterSpacing: 0,
             fontWeight: FontWeight.bold,
-
           ),
           bodyText2: GoogleFonts.roboto(
-            color: Colors.white,
+            color: lightonBackGround,
             fontSize: 22,
             letterSpacing: 0,
           ),
@@ -130,6 +130,7 @@ class ThemeChanger with ChangeNotifier {
             fontSize: 18,
             letterSpacing: 0,
           )),
+      //primaryTextTheme: ,
       iconTheme: IconThemeData(
         color: Colors.white,
       ),

@@ -22,7 +22,11 @@ class TextPageState extends State<TextPage> {
   var time = TimeOfDay.now();
 
   NotusDocument loadDocument() {
-    return NotusDocument.fromJson(jsonDecode(widget.file.data));
+    if (widget.file.data.isNotEmpty) {
+      final contents = widget.file.data;
+      return NotusDocument.fromJson(jsonDecode(contents));
+    }
+    return NotusDocument();
   }
 
   @override
@@ -40,18 +44,22 @@ class TextPageState extends State<TextPage> {
     super.dispose();
   }
 
-  void _saveDocument() async {
+  void _saveDocument(BuildContext context) {
     // Notus documents can be easily serialized to JSON by passing to
     // `jsonEncode` directly
-    final contents = zController.document.toString();
+    final contents = jsonEncode(zController.document);
     // For this example we save our document to a temporary file.
-    final file = await File(widget.file.entity.path).create();
     // And show a snack bar on success.
-    file.writeAsString(contents).then((_) {
-      Scaffold.of(context).showSnackBar(SnackBar(content: Text("Saved.")));
+    widget.file.data = contents;
+    (widget.file.entity as File).writeAsString(contents, flush: true).then((_) {
+      print("Saved");
+      Scaffold.of(context).showSnackBar(SnackBar(
+        content: Text("Saved"),
+        elevation: 20,
+        backgroundColor: Theme.of(context).colorScheme.onBackground,
+      ));
     });
-    widget.file.data=await file.readAsString();
-    print("done");
+    //Navigator.pop(context);
   }
 
   Text printDateTime(DateTime date, TimeOfDay time) {
@@ -78,47 +86,54 @@ class TextPageState extends State<TextPage> {
     _controller.text = '${widget.title}';
     print(widget.title);
     return Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          title: Text(widget.file.title),
-          actions: <Widget>[
-            if (widget.file.type == Type.task) printDateTime(date, time),
-            if (widget.file.type == Type.task)
-              IconButton(
-                icon: Icon(Icons.calendar_today),
-                onPressed: () async {
-                  var dateTemp = await selectDate();
-                  if (dateTemp == null) return;
-                  var timeTemp = await selectTime();
-                  if (timeTemp == null) return;
-                  print(date.toString());
-                  print(time.toString());
-                  setState(() {
-                    date = dateTemp;
-                    time = timeTemp;
-                  });
-                },
-              ),
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: Text(
+          widget.file.title,
+          style: Theme.of(context).textTheme.bodyText1,
+        ),
+        actions: <Widget>[
+          if (widget.file.type == Type.task) printDateTime(date, time),
+          if (widget.file.type == Type.task)
             IconButton(
+              icon: Icon(
+                Icons.calendar_today,
+                color: Theme.of(context).colorScheme.onPrimary,
+              ),
+              onPressed: () async {
+                var dateTemp = await selectDate();
+                if (dateTemp == null) return;
+                var timeTemp = await selectTime();
+                if (timeTemp == null) return;
+                print(date.toString());
+                print(time.toString());
+                setState(() {
+                  date = dateTemp;
+                  time = timeTemp;
+                });
+              },
+            ),
+          Builder(
+            builder: (context) => IconButton(
               icon: Icon(Icons.check),
-              disabledColor: Theme.of(context).colorScheme.onPrimary,
+              disabledColor: Theme.of(context).colorScheme.onBackground,
               color: Theme.of(context).colorScheme.onPrimary,
-              onPressed: () async{
-                _saveDocument();
+              onPressed: () async {
+                _saveDocument(context);
                 //Navigator.popUntil(context, (route) => false),
               },
             ),
-          ],
-        ),
-        body: Container(
-          child: ZefyrScaffold(
-            child: ZefyrEditor(
-              controller: zController,
-              padding: EdgeInsets.all(10),
-              autofocus: false,
-              focusNode: node,
-            ),
           ),
-        ));
+        ],
+      ),
+      body: ZefyrScaffold(
+        child: ZefyrEditor(
+          controller: zController,
+          padding: EdgeInsets.all(16),
+          autofocus: false,
+          focusNode: node,
+        ),
+      ),
+    );
   }
 }

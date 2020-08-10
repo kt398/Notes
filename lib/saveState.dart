@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:path_provider/path_provider.dart';
 import 'File.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as GetName;
 class SaveState {
   SharedPreferences prefs;
   bool isDark; //false is light, true is dark
@@ -14,23 +14,20 @@ class SaveState {
   }
 
 
-  Future<Folder> initStruct(Directory dir,Folder object, bool isTask) async{
-    //print(dir.path);
+  Future<Folder> initStruct(Directory dir,Folder object, bool isTask,String folderPath) async{
     Stream temp=dir.list(recursive: false,followLinks: false);
     await for(FileSystemEntity entity in temp){
-      //print(entity.path);
       if(entity is File){
         if(isTask){
-          object.list.add(new Task(entity.path,path.basenameWithoutExtension(entity.path),"temp date",entity,await entity.readAsString()));
+          object.list.add(new Task(entity.path,GetName.basenameWithoutExtension(entity.path),"temp date",entity,await entity.readAsString()));
         }
         else{
-          object.list.add(new Note(entity.path,path.basenameWithoutExtension(entity.path),"temp date",entity,await entity.readAsString()));
+          object.list.add(new Note(entity.path,GetName.basenameWithoutExtension(entity.path),"temp date",entity,await entity.readAsString()));
         }
       }
       else if(entity is Directory){
-        //print(path.basenameWithoutExtension(entity.path));
-        Folder temp =new Folder(path.basenameWithoutExtension(entity.path),"test",entity,object);
-        object.list.add(await initStruct(entity, temp, isTask));
+        Folder temp =new Folder(GetName.basenameWithoutExtension(entity.path),"test",entity,object,'$folderPath/${GetName.basenameWithoutExtension(entity.path)}');
+        object.list.add(await initStruct(entity, temp, isTask,temp.path));
       }
     }
     return object;
@@ -52,22 +49,20 @@ class SaveState {
       final newRootFolder= await rootFolder.create(recursive: false,);
       notes= await (Directory('${newRootFolder.path}/Notes').create(recursive:true));
       tasks= await (Directory('${newRootFolder.path}/Tasks').create(recursive:true));
-      //return dir.path;
     }
     else{
       notes=Directory('${rootFolder.path}/Notes');
       tasks=Directory('${rootFolder.path}/Tasks');
     }
-    root=new Folder("Root","Root",rootFolder,null);
-    notesObj=new Folder("Notes","Root",notes,root);
-    tasksObj=new Folder("Tasks","Root",tasks,root);
+    root=new Folder("Root","Root",rootFolder,null,'');
+    notesObj=new Folder("Notes","Root",notes,root,'Notes');
+    tasksObj=new Folder("Tasks","Root",tasks,root,'Tasks');
     root.list.add(notesObj);
     root.list.add(tasksObj);
 
-    root.list.add(await initStruct(notes,notesObj,false));
-    root.list.add(await initStruct(tasks,tasksObj,true));
+    root.list.add(await initStruct(notes,notesObj,false,'Notes'));
+    root.list.add(await initStruct(tasks,tasksObj,true,'Notes'));
 
-    //print(dir.path);
     return dir.path;
   }
 
