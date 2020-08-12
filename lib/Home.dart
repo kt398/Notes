@@ -8,6 +8,12 @@ import 'TextPage.dart';
 import 'File.dart';
 
 //TODO make lightmode pretty
+//TODO notifications
+//TODO card styling
+//TODO textpage title
+//TODO licenses
+//TODO Add stuff to settings page
+
 class Home extends StatefulWidget {
   final SaveState save;
   Home(this.save);
@@ -387,10 +393,11 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     return Scaffold(
       //TODO Hide appbar on scrollup
       //TODO Change appbar on selected
-      appBar: rootDirectory != 0 && totalSelected==0
+      appBar: rootDirectory != 0 && totalSelected == 0
           ? new AppBar(
               leading: IconButton(
-                icon: Icon(Icons.arrow_back,color: Theme.of(context).iconTheme.color),
+                icon: Icon(Icons.arrow_back,
+                    color: Theme.of(context).iconTheme.color),
                 onPressed: () {
                   if (tabController.index == 0) {
                     setState(() {
@@ -402,12 +409,11 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
               ),
               title: Text(
                 notesWorkingFolder.path,
-                textDirection: TextDirection.rtl,
+                //textDirection: TextDirection.rtl,
                 overflow: TextOverflow.fade,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyText2
-                    .copyWith(color: Theme.of(context).colorScheme.onPrimary,fontSize: 16),
+                style: Theme.of(context).textTheme.bodyText2.copyWith(
+                    color: Theme.of(context).colorScheme.onPrimary,
+                    fontSize: 16),
               ),
               actions: popupMenu(),
             )
@@ -423,14 +429,14 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       Tab(
                         child: Text(
                           'Notes',
-                          style: Theme.of(context).textTheme.bodyText2.copyWith(
+                          style: Theme.of(context).textTheme.headline1.copyWith(
                               color: Theme.of(context).colorScheme.onPrimary),
                         ),
                       ),
                       Tab(
                         child: Text(
                           'Tasks',
-                          style: Theme.of(context).textTheme.bodyText2.copyWith(
+                          style: Theme.of(context).textTheme.headline1.copyWith(
                               color: Theme.of(context).colorScheme.onPrimary),
                         ),
                       ),
@@ -581,10 +587,52 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         notesWorkingFolder.list[index].selected =
                             !notesWorkingFolder.list[index].selected;
                       });
-                      //print(totalSelected);
                     },
-                    title: Text('${notesWorkingFolder.list[index].title}'),
-                    subtitle: Text('test'),
+                    title: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                              child: Text(
+                            '${notesWorkingFolder.list[index].title}',
+                            style: Theme.of(context)
+                                .textTheme
+                                .headline2
+                                .copyWith(
+                                    color: (Theme.of(context)
+                                        .colorScheme
+                                        .onBackground)),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          )),
+                          if (notesWorkingFolder.list[index].type !=
+                              Type.folder)
+                            Text(
+                              '${notesWorkingFolder.list[index].dateModified.month}/${notesWorkingFolder.list[index].dateModified.day}/${notesWorkingFolder.list[index].dateModified.year}',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .subtitle2
+                                  .copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onBackground),
+                            )
+                        ]),
+                    trailing: null,
+                    subtitle: notesWorkingFolder.list[index].type != Type.folder
+                        ? Text(
+                            '${notesWorkingFolder.list[index].plainText}',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyText1
+                                .copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onBackground),
+                            overflow: TextOverflow.clip,
+                            maxLines: 2,
+                          )
+                        : null,
+                    isThreeLine: false,
                   ),
                 ),
               );

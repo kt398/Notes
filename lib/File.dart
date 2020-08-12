@@ -6,11 +6,12 @@ enum Type { notes, task, folder }
 class Files {
   Type type;
   String title;
-  String dateModified;
+  DateTime dateModified;
   String data;
+  String plainText;
   bool selected;
   FileSystemEntity entity;
-  Files(this.title, this.dateModified, this.selected, this.type, this.entity,this.data);
+  Files(this.title, this.dateModified, this.selected, this.type, this.entity,this.data,this.plainText);
 
   Future<bool> fileExists(String name) async {
     if ((await FileSystemEntity.type('${entity.parent.path}/$name') !=
@@ -39,14 +40,14 @@ class Files {
 }
 
 class Note extends Files {
-  Note(String path, String title, String dateModified, File file,String data)
-      : super(title, dateModified, false, Type.notes, file,data);
+  Note(String path, String title, DateTime dateModified, File file,String data,String textData)
+      : super(title, dateModified, false, Type.notes, file,data,textData);
 }
 
 class Task extends Files {
   String date;
-  Task(String path, String title, String dateModified, File file,String data)
-      : super(title, dateModified, false, Type.task, file,data);
+  Task(String path, String title, DateTime dateModified, File file,String data,String textData)
+      : super(title, dateModified, false, Type.task, file,data,textData);
 }
 
 class Folder extends Files {
@@ -54,8 +55,8 @@ class Folder extends Files {
   String name;
   List<Files> list;
   String path;
-  Folder(String title, String dateModified, Directory dir, this.parentFolder,this.path)
-      : super(title, dateModified, false, Type.folder, dir,'') {
+  Folder(String title, DateTime dateModified, Directory dir, this.parentFolder,this.path)
+      : super(title, dateModified, false, Type.folder, dir,'','') {
     list = new List<Files>();
     selected = false;
   }
@@ -70,7 +71,7 @@ class Folder extends Files {
       return false;
     }));
 
-    this.list.add(new Folder(name, 'test', tempDir, this,'$path/${GetName.basenameWithoutExtension(entity.path)}'));
+    this.list.add(new Folder(name, null, tempDir, this,'$path/${GetName.basenameWithoutExtension(entity.path)}'));
     return true;
   }
 
@@ -86,14 +87,14 @@ class Folder extends Files {
         case Type.notes:
           {
             File f = await File('${entity.path}/$name.json').create(recursive: false);
-            this.list.add(new Note(f.path,name,"temp date",f,await f.readAsString()));
+            this.list.add(new Note(f.path,name,(await f.lastModified()),f,await f.readAsString(),''));
           }
           break;
 
         case Type.task:
           {
             File f = await File('${entity.path}/$name.json').create(recursive: false);
-            this.list.add(new Task(f.path,name,"temp date",f,await f.readAsString()));
+            this.list.add(new Task(f.path,name,(await f.lastModified()),f,await f.readAsString(),''));
           }
           break;
       }

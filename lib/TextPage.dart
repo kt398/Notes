@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'File.dart';
 import 'package:zefyr/zefyr.dart';
 import 'dart:convert';
+import 'dart:io' show Platform;
 import 'dart:io';
 
 class TextPage extends StatefulWidget {
@@ -44,22 +45,22 @@ class TextPageState extends State<TextPage> {
     super.dispose();
   }
 
-  void _saveDocument(BuildContext context) {
+  Future<bool> _saveDocument(BuildContext context) async {
     // Notus documents can be easily serialized to JSON by passing to
     // `jsonEncode` directly
     final contents = jsonEncode(zController.document);
     // For this example we save our document to a temporary file.
     // And show a snack bar on success.
-    widget.file.data = contents;
-    (widget.file.entity as File).writeAsString(contents, flush: true).then((_) {
-      print("Saved");
-      Scaffold.of(context).showSnackBar(SnackBar(
-        content: Text("Saved"),
-        elevation: 20,
-        backgroundColor: Theme.of(context).colorScheme.onBackground,
-      ));
-    });
-    //Navigator.pop(context);
+    if (widget.file.data != contents) {
+      widget.file.data = contents;
+      String plainText=zController.document.toPlainText();
+      widget.file.plainText=plainText;
+      await (widget.file.entity as File).writeAsString(contents, flush: true);
+      await Future.delayed(new Duration(milliseconds: 750));
+    }
+    else{
+    }
+    return true;
   }
 
   Text printDateTime(DateTime date, TimeOfDay time) {
@@ -84,13 +85,39 @@ class TextPageState extends State<TextPage> {
   @override
   Widget build(BuildContext context) {
     _controller.text = '${widget.title}';
-    print(widget.title);
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
+        leading: IconButton(
+            icon: Icon(
+              Platform.isAndroid ? Icons.arrow_back : Icons.arrow_back_ios,
+              color: Theme.of(context).colorScheme.onPrimary,
+            ),
+            onPressed: () async {
+              showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (BuildContext context) {
+                    return SimpleDialog(
+                      contentPadding: EdgeInsets.fromLTRB(0, 16, 12, 16),
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            Text('Saving...'),
+                            CircularProgressIndicator(),
+                          ],
+                        ),
+                      ],
+                    );
+                  });
+              await _saveDocument(context);
+              Navigator.of(context).pop();
+              Navigator.of(context).pop();
+            }),
         title: Text(
           widget.file.title,
-          style: Theme.of(context).textTheme.bodyText1,
+          style: Theme.of(context).textTheme.headline1.copyWith(color: Theme.of(context).colorScheme.onPrimary),
         ),
         actions: <Widget>[
           if (widget.file.type == Type.task) printDateTime(date, time),
@@ -119,7 +146,7 @@ class TextPageState extends State<TextPage> {
               disabledColor: Theme.of(context).colorScheme.onBackground,
               color: Theme.of(context).colorScheme.onPrimary,
               onPressed: () async {
-                _saveDocument(context);
+                await _saveDocument(context);
                 //Navigator.popUntil(context, (route) => false),
               },
             ),

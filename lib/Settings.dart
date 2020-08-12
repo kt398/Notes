@@ -54,7 +54,7 @@ class SettingState extends State<Settings>{
                   children: <Widget>[
                     Text(
                       "Dark Mode",
-                      style: Theme.of(context).textTheme.bodyText1.apply(color: Theme.of(context).colorScheme.onBackground),
+                      style: Theme.of(context).textTheme.headline1.apply(color: Theme.of(context).colorScheme.onBackground),
                     ),
                     Switch(
                       value: isDark,

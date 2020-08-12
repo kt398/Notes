@@ -14,6 +14,34 @@ class ThemeChanger with ChangeNotifier {
     notifyListeners();
   }
 
+  static TextTheme personalTextTheme() {
+    return TextTheme(
+        headline1: GoogleFonts.roboto(
+          color: Colors.white,
+          fontSize: 24,
+          letterSpacing: 0,
+        ),
+        headline2: GoogleFonts.roboto(//title of the cards
+          fontSize: 22
+
+        ),
+        bodyText1: GoogleFonts.roboto(//content of the cards
+          color: Colors.white,
+          fontSize: 16,
+          letterSpacing: 0,
+        ),
+        bodyText2: GoogleFonts.roboto(
+          color: Colors.white,
+          fontSize: 22,
+          letterSpacing: 0,
+        ),
+        subtitle2: GoogleFonts.roboto(//trailing for the cards
+          color: Colors.black,
+          fontSize: 14,
+          letterSpacing: 0,
+        ));
+  }
+
   static ThemeData darkTheme() {
     return ThemeData(
       applyElevationOverlayColor: true,
@@ -44,27 +72,7 @@ class ThemeChanger with ChangeNotifier {
         color: darkBackground,
       ),
       brightness: Brightness.dark,
-      textTheme: TextTheme(
-          headline1: GoogleFonts.roboto(
-            color: Colors.white,
-            fontSize: 24,
-            letterSpacing: 0,
-          ),
-          bodyText1: GoogleFonts.roboto(
-            color: Colors.white,
-            fontSize: 20,
-            letterSpacing: 0,
-          ),
-          bodyText2: GoogleFonts.roboto(
-            color: Colors.white,
-            fontSize: 22,
-            letterSpacing: 0,
-          ),
-          subtitle2: GoogleFonts.roboto(
-            color: Colors.black,
-            fontSize: 18,
-            letterSpacing: 0,
-          )),
+      textTheme: personalTextTheme(),
       iconTheme: IconThemeData(
         color: Colors.white,
       ),
@@ -107,29 +115,7 @@ class ThemeChanger with ChangeNotifier {
         elevation: 4,
         color: lightPrimary,
       ),
-      textTheme: TextTheme(
-          headline1: GoogleFonts.roboto(
-            color: Colors.white,
-            fontSize: 24,
-            letterSpacing: 0,
-            fontWeight: FontWeight.bold,
-          ),
-          bodyText1: GoogleFonts.roboto(
-            color: Colors.white,
-            fontSize: 20,
-            letterSpacing: 0,
-            fontWeight: FontWeight.bold,
-          ),
-          bodyText2: GoogleFonts.roboto(
-            color: lightonBackGround,
-            fontSize: 22,
-            letterSpacing: 0,
-          ),
-          subtitle2: GoogleFonts.roboto(
-            color: Colors.black,
-            fontSize: 18,
-            letterSpacing: 0,
-          )),
+      textTheme: personalTextTheme(),
       //primaryTextTheme: ,
       iconTheme: IconThemeData(
         color: Colors.white,
