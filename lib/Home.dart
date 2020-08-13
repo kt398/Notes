@@ -6,8 +6,9 @@ import 'Settings.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'TextPage.dart';
 import 'File.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 
-//TODO make lightmode pretty
+//TODO make everything pretty
 //TODO notifications
 //TODO card styling
 //TODO textpage title
@@ -338,6 +339,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
         child: PopupMenuButton<String>(
             //color: Theme.of(context).appBarTheme.color,
             //color: Colors.white,
+            padding: EdgeInsets.all(0),
             icon: IconTheme(
               data: Theme.of(context).iconTheme,
               child: Icon(
@@ -359,7 +361,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
               );
               list.add(
                 PopupMenuDivider(
-                  height: 10,
+                  height: 1,
                 ),
               );
               list.add(
@@ -372,7 +374,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
               );
               list.add(
                 PopupMenuDivider(
-                  height: 10,
+                  height: 1,
                 ),
               );
               list.add(
@@ -392,7 +394,6 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     return Scaffold(
       //TODO Hide appbar on scrollup
-      //TODO Change appbar on selected
       appBar: rootDirectory != 0 && totalSelected == 0
           ? new AppBar(
               leading: IconButton(
@@ -461,13 +462,13 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   ),
                   title: Text(
                     '$totalSelected Selected',
-                    style: Theme.of(context).textTheme.bodyText2,
+                    style: Theme.of(context).textTheme.headline1.copyWith(color: Theme.of(context).colorScheme.onPrimary,)
                   ),
                   actions: <Widget>[
                     PopupMenuTheme(
                       data: Theme.of(context).popupMenuTheme,
                       child: PopupMenuButton<String>(
-                        icon: Icon(Icons.more_vert),
+                        icon: Icon(Icons.more_vert,color: Theme.of(context).iconTheme.color,),
                         onSelected: (choice) {
                           selectedMenuChoice(choice);
                         },
@@ -505,23 +506,29 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
             : null,
         controller: tabController,
         children: <Widget>[
-          ListView.builder(
+          ListView.separated(
             itemCount: notesWorkingFolder.list.length,
+            separatorBuilder: (context,index){
+              return Divider(
+                height: 4,
+                color: Colors.transparent,
+              );
+            },
             itemBuilder: (BuildContext context, int index) {
               return Card(
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 color: !notesWorkingFolder.list[index].selected
                     ? Theme.of(context).colorScheme.background
-                    : Theme.of(context).colorScheme.primaryVariant,
-                elevation: !notesWorkingFolder.list[index].selected ? 1 : 1,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
-                margin: const EdgeInsets.fromLTRB(15, 8, 15, 0),
+                    : Theme.of(context).cardTheme.color,
+                //elevation: !notesWorkingFolder.list[index].selected ? 1 : 1,
+                margin: index==0?const EdgeInsets.fromLTRB(3,4,3,0):const EdgeInsets.fromLTRB(3, 0, 3, 0),
                 shadowColor: Colors.transparent,
                 child: ListTileTheme(
                   dense: false,
                   selectedColor: Colors.white,
                   child: ListTile(
-                    selected: notesWorkingFolder.list[index].selected,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    selected: notesWorkingFolder.list[index].selected,                
                     leading: Icon(
                       notesWorkingFolder.list[index].type == Type.folder
                           ? Icons.folder
@@ -592,8 +599,9 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Expanded(
-                              child: Text(
+                              child: AutoSizeText(
                             '${notesWorkingFolder.list[index].title}',
+                            minFontSize: 16,
                             style: Theme.of(context)
                                 .textTheme
                                 .headline2
@@ -614,10 +622,9 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                   .copyWith(
                                       color: Theme.of(context)
                                           .colorScheme
-                                          .onBackground),
+                                          .onBackground.withOpacity(.8)),
                             )
                         ]),
-                    trailing: null,
                     subtitle: notesWorkingFolder.list[index].type != Type.folder
                         ? Text(
                             '${notesWorkingFolder.list[index].plainText}',
@@ -627,7 +634,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                 .copyWith(
                                     color: Theme.of(context)
                                         .colorScheme
-                                        .onBackground),
+                                        .onBackground.withOpacity(.8)),
                             overflow: TextOverflow.clip,
                             maxLines: 2,
                           )

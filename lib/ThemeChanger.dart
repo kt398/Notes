@@ -27,7 +27,7 @@ class ThemeChanger with ChangeNotifier {
         ),
         bodyText1: GoogleFonts.roboto(//content of the cards
           color: Colors.white,
-          fontSize: 16,
+          fontSize: 14,
           letterSpacing: 0,
         ),
         bodyText2: GoogleFonts.roboto(
@@ -46,9 +46,10 @@ class ThemeChanger with ChangeNotifier {
     return ThemeData(
       applyElevationOverlayColor: true,
       splashColor: Colors.transparent,
-      highlightColor: Colors.transparent,
+      //highlightColor: Colors.transparent,
       cardTheme: CardTheme(
-        elevation: 1,
+        elevation: 0,
+        color: Colors.grey[900],
       ),
       primaryColor: darkPrimary,
       scaffoldBackgroundColor: darkBackground,
@@ -88,9 +89,10 @@ class ThemeChanger with ChangeNotifier {
     return ThemeData(
       applyElevationOverlayColor: false,
       splashColor: Colors.transparent,
-      highlightColor: Colors.transparent,
+      //highlightColor: Colors.transparent,
       cardTheme: CardTheme(
-        elevation: 1,
+        elevation: 0,
+        color: Colors.grey[350],
       ),
       primaryColor: lightPrimary,
       scaffoldBackgroundColor: lightBackground,
