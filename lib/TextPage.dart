@@ -1,10 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:notes/main.dart';
 import 'File.dart';
 import 'package:zefyr/zefyr.dart';
 import 'dart:convert';
 import 'dart:io' show Platform;
 import 'dart:io';
+import 'NotificationHelper.dart';
 
 class TextPage extends StatefulWidget {
   final String title;
@@ -19,8 +22,9 @@ class TextPageState extends State<TextPage> {
   TextEditingController _controller = new TextEditingController();
   String title;
   var fontWeight = [false, false, false];
-  var date = DateTime.now();
+  var date=DateTime.now();
   var time = TimeOfDay.now();
+  var finalDateTime = DateTime.now();
 
   NotusDocument loadDocument() {
     if (widget.file.data.isNotEmpty) {
@@ -33,6 +37,9 @@ class TextPageState extends State<TextPage> {
   @override
   void initState() {
     node = FocusNode();
+    if(widget.file.type==Type.task){
+      date=(widget.file as Task).date;
+    }
     final document = loadDocument();
     zController = new ZefyrController(document);
     super.initState();
@@ -46,28 +53,26 @@ class TextPageState extends State<TextPage> {
   }
 
   Future<bool> _saveDocument(BuildContext context) async {
-    // Notus documents can be easily serialized to JSON by passing to
-    // `jsonEncode` directly
     final contents = jsonEncode(zController.document);
-    // For this example we save our document to a temporary file.
-    // And show a snack bar on success.
     if (widget.file.data != contents) {
       widget.file.data = contents;
-      String plainText=zController.document.toPlainText();
-      widget.file.plainText=plainText;
+      String plainText = zController.document.toPlainText();
+      widget.file.plainText = plainText;
       await (widget.file.entity as File).writeAsString(contents, flush: true);
       await Future.delayed(new Duration(milliseconds: 750));
+      return true;
+    } else {
+      return false;
     }
-    else{
-    }
-    return true;
   }
 
-  Text printDateTime(DateTime date, TimeOfDay time) {
-    return Text(
-      '${date.month}/${date.day}/${date.year} ${time.format(context)}',
-      style: TextStyle(fontSize: 18, letterSpacing: -1),
-    );
+  Row printDateTime(DateTime date, TimeOfDay time) {
+    return Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+      Text(
+        '${date.month}/${date.day}/${date.year} ${time.format(context)}',
+        style: TextStyle(fontSize: 20, letterSpacing: 0),
+      ),
+    ]);
   }
 
   Future<DateTime> selectDate() {
@@ -111,16 +116,27 @@ class TextPageState extends State<TextPage> {
                       ],
                     );
                   });
-              await _saveDocument(context);
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
+              if (await _saveDocument(context)) {
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              } else {
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              }
             }),
         title: Text(
           widget.file.title,
-          style: Theme.of(context).textTheme.headline1.copyWith(color: Theme.of(context).colorScheme.onPrimary),
+          style: Theme.of(context)
+              .textTheme
+              .headline1
+              .copyWith(color: Theme.of(context).colorScheme.onPrimary),
         ),
+        bottom: widget.file.type == Type.task
+            ? PreferredSize(
+                preferredSize: Size.fromHeight(20),
+                child: printDateTime(date, time))
+            : null,
         actions: <Widget>[
-          if (widget.file.type == Type.task) printDateTime(date, time),
           if (widget.file.type == Type.task)
             IconButton(
               icon: Icon(
@@ -132,8 +148,16 @@ class TextPageState extends State<TextPage> {
                 if (dateTemp == null) return;
                 var timeTemp = await selectTime();
                 if (timeTemp == null) return;
-                print(date.toString());
-                print(time.toString());
+                DateTime finalDate = new DateTime(dateTemp.year, dateTemp.month,
+                    dateTemp.day, timeTemp.hour, timeTemp.minute, 0, 0, 0);
+                print(finalDate.toIso8601String());
+                setState(() {
+                  (widget.file as Task).changeDate(finalDate);
+                });
+                await turnOffNotificationById(flutterLocalNotificationsPlugin,(widget.file as Task).notificationID);
+                await scheduleNotification(flutterLocalNotificationsPlugin,
+                    widget.file.entity.path, (widget.file as Task).notificationID, 'Test body', finalDate);
+                //print((widget.file as Task).date.toString());
                 setState(() {
                   date = dateTemp;
                   time = timeTemp;

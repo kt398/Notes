@@ -3,8 +3,21 @@ import 'Home.dart';
 import 'saveState.dart';
 import 'package:provider/provider.dart';
 import 'ThemeChanger.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'dart:async';
+import 'NotificationHelper.dart';
 
-void main() {
+
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
+NotificationAppLaunchDetails notificationAppLaunchDetails;
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  notificationAppLaunchDetails =
+      await flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
+  await initNotifications(flutterLocalNotificationsPlugin);
+  requestIOSPermissions(flutterLocalNotificationsPlugin);
+
   runApp(MyApp());
 }
 

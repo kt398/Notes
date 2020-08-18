@@ -9,6 +9,7 @@ import 'File.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
 //TODO make everything pretty
+//TODO convert tasks date from string to DateTime
 //TODO notifications
 //TODO card styling
 //TODO textpage title
@@ -60,8 +61,12 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                 MaterialButton(
                     child: Text("Confirm"),
                     onPressed: () async {
-                      await notesWorkingFolder.deleteSelected();
-                      await tasksWorkingFolder.deleteSelected();
+                      if (tabController.index == 1) {
+                        await tasksWorkingFolder.deleteSelected();
+                        widget.save.lastTask -= totalSelected;
+                      } else {
+                        await notesWorkingFolder.deleteSelected();
+                      }
                       totalSelected = 0;
                       Navigator.of(context).pop();
                     }),
@@ -147,17 +152,32 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       ),
                       MaterialButton(
                         onPressed: () async => {
-                          if (await notesWorkingFolder.list[index]
-                              .renameFile(renameController.text))
+                          if (tabController.index == 0)
                             {
-                              totalSelected = 0,
-                              Navigator.of(context).pop(),
+                              if (await (notesWorkingFolder.list[index] as Note)
+                                  .renameFile(renameController.text))
+                                {
+                                  totalSelected = 0,
+                                  Navigator.of(context).pop(),
+                                }
+                              else
+                                {
+                                  setState(() {
+                                    validate = false;
+                                  }),
+                                }
                             }
                           else
                             {
-                              setState(() {
-                                validate = false;
-                              }),
+                              if(await (tasksWorkingFolder.list[index] as Task).renameFile(renameController.text,tasksWorkingFolder)){
+                                totalSelected=0,
+                                Navigator.of(context).pop(),
+                              }
+                              else{
+                                setState((){
+                                  validate=false;
+                                })
+                              }
                             }
                         },
                         child: Text(
@@ -236,12 +256,15 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                               if (tabController.index == 1)
                                 {
                                   await tasksWorkingFolder.addFile(
-                                      _controller.text, Type.task),
+                                      _controller.text,
+                                      Type.task,
+                                      widget.save.lastTask),
+                                  widget.save.lastTask++,
                                 }
                               else
                                 {
                                   await notesWorkingFolder.addFile(
-                                      _controller.text, Type.notes),
+                                      _controller.text, Type.notes, -1),
                                 },
                               Navigator.push(
                                   context,
@@ -303,6 +326,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
   }
 
   SpeedDial buildAddIcons() {
+
     //bool temp = true;
     return SpeedDial(
       backgroundColor:
@@ -460,15 +484,18 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                       });
                     },
                   ),
-                  title: Text(
-                    '$totalSelected Selected',
-                    style: Theme.of(context).textTheme.headline1.copyWith(color: Theme.of(context).colorScheme.onPrimary,)
-                  ),
+                  title: Text('$totalSelected Selected',
+                      style: Theme.of(context).textTheme.headline1.copyWith(
+                            color: Theme.of(context).colorScheme.onPrimary,
+                          )),
                   actions: <Widget>[
                     PopupMenuTheme(
                       data: Theme.of(context).popupMenuTheme,
                       child: PopupMenuButton<String>(
-                        icon: Icon(Icons.more_vert,color: Theme.of(context).iconTheme.color,),
+                        icon: Icon(
+                          Icons.more_vert,
+                          color: Theme.of(context).iconTheme.color,
+                        ),
                         onSelected: (choice) {
                           selectedMenuChoice(choice);
                         },
@@ -508,7 +535,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
         children: <Widget>[
           ListView.separated(
             itemCount: notesWorkingFolder.list.length,
-            separatorBuilder: (context,index){
+            separatorBuilder: (context, index) {
               return Divider(
                 height: 4,
                 color: Colors.transparent,
@@ -516,19 +543,23 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
             },
             itemBuilder: (BuildContext context, int index) {
               return Card(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
                 color: !notesWorkingFolder.list[index].selected
                     ? Theme.of(context).colorScheme.background
                     : Theme.of(context).cardTheme.color,
                 //elevation: !notesWorkingFolder.list[index].selected ? 1 : 1,
-                margin: index==0?const EdgeInsets.fromLTRB(3,4,3,0):const EdgeInsets.fromLTRB(3, 0, 3, 0),
+                margin: index == 0
+                    ? const EdgeInsets.fromLTRB(3, 4, 3, 0)
+                    : const EdgeInsets.fromLTRB(3, 0, 3, 0),
                 shadowColor: Colors.transparent,
                 child: ListTileTheme(
                   dense: false,
                   selectedColor: Colors.white,
                   child: ListTile(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    selected: notesWorkingFolder.list[index].selected,                
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    selected: notesWorkingFolder.list[index].selected,
                     leading: Icon(
                       notesWorkingFolder.list[index].type == Type.folder
                           ? Icons.folder
@@ -552,7 +583,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                           tasksWorkingFolder = tasksWorkingFolder.list[index];
                           rootDirectory++;
                         } else {
-                          Navigator.pushReplacement(
+                          Navigator.push(
                             context,
                             MaterialPageRoute(
                                 builder: (context) => TextPage(
@@ -622,7 +653,8 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                   .copyWith(
                                       color: Theme.of(context)
                                           .colorScheme
-                                          .onBackground.withOpacity(.8)),
+                                          .onBackground
+                                          .withOpacity(.8)),
                             )
                         ]),
                     subtitle: notesWorkingFolder.list[index].type != Type.folder
@@ -634,7 +666,8 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                                 .copyWith(
                                     color: Theme.of(context)
                                         .colorScheme
-                                        .onBackground.withOpacity(.8)),
+                                        .onBackground
+                                        .withOpacity(.8)),
                             overflow: TextOverflow.clip,
                             maxLines: 2,
                           )
@@ -645,14 +678,148 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
               );
             },
           ),
-          ListView.builder(
+          ListView.separated(
             itemCount: tasksWorkingFolder.list.length,
+            separatorBuilder: (context, index) {
+              return Divider(
+                height: 4,
+                color: Colors.transparent,
+              );
+            },
             itemBuilder: (BuildContext context, int index) {
-              return ListTile(
-                leading: tasksWorkingFolder.list[index].type == Type.folder
-                    ? Icon(Icons.folder)
-                    : Icon(Icons.note_add),
-                title: Text('${tasksWorkingFolder.list[index].title}'),
+              return Card(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                color: !tasksWorkingFolder.list[index].selected
+                    ? Theme.of(context).colorScheme.background
+                    : Theme.of(context).cardTheme.color,
+                //elevation: !tasksWorkingFolder.list[index].selected ? 1 : 1,
+                margin: index == 0
+                    ? const EdgeInsets.fromLTRB(3, 4, 3, 0)
+                    : const EdgeInsets.fromLTRB(3, 0, 3, 0),
+                shadowColor: Colors.transparent,
+                child: ListTileTheme(
+                  dense: false,
+                  selectedColor: Colors.white,
+                  child: ListTile(
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    selected: tasksWorkingFolder.list[index].selected,
+                    leading: Icon(
+                      tasksWorkingFolder.list[index].type == Type.folder
+                          ? Icons.folder
+                          : Icons.note_add,
+                      size: 40,
+                    ),
+                    onTap: () {
+                      if (totalSelected > 0) {
+                        if (tasksWorkingFolder.list[index].selected) {
+                          totalSelected--;
+                        } else {
+                          totalSelected++;
+                        }
+                        setState(() {
+                          tasksWorkingFolder.list[index].selected =
+                              !tasksWorkingFolder.list[index].selected;
+                        });
+                      } else if (tabController.index == 1) {
+                        if (tasksWorkingFolder.list[index].type ==
+                            Type.folder) {
+                          tasksWorkingFolder = tasksWorkingFolder.list[index];
+                          rootDirectory++;
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => TextPage(
+                                    tasksWorkingFolder.list[index],
+                                    tasksWorkingFolder.list[index].title)),
+                          );
+                        }
+                      } else if (tabController.index == 0) {
+                        if (tasksWorkingFolder.list[index].type ==
+                            Type.folder) {
+                          setState(() {
+                            rootDirectory++;
+                            tasksWorkingFolder = tasksWorkingFolder.list[index];
+                          });
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => TextPage(
+                                    tasksWorkingFolder.list[index],
+                                    tasksWorkingFolder.list[index].title)),
+                          );
+                        }
+                      }
+                    },
+                    onLongPress: () {
+                      if (tasksWorkingFolder.list[index].selected) {
+                        totalSelected--;
+                      } else {
+                        totalSelected++;
+                      }
+                      if (totalSelected == 1) {
+                        firstIndex = index;
+                      }
+                      if (totalSelected == 0) {
+                        firstIndex = -1;
+                      }
+                      setState(() {
+                        tasksWorkingFolder.list[index].selected =
+                            !tasksWorkingFolder.list[index].selected;
+                      });
+                    },
+                    title: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                              child: AutoSizeText(
+                            '${tasksWorkingFolder.list[index].title}',
+                            minFontSize: 16,
+                            style: Theme.of(context)
+                                .textTheme
+                                .headline2
+                                .copyWith(
+                                    color: (Theme.of(context)
+                                        .colorScheme
+                                        .onBackground)),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          )),
+                          if (tasksWorkingFolder.list[index].type !=
+                              Type.folder)
+                            Text(
+                              '${tasksWorkingFolder.list[index].dateModified.month}/${tasksWorkingFolder.list[index].dateModified.day}/${tasksWorkingFolder.list[index].dateModified.year}',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .subtitle2
+                                  .copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onBackground
+                                          .withOpacity(.8)),
+                            )
+                        ]),
+                    subtitle: tasksWorkingFolder.list[index].type != Type.folder
+                        ? Text(
+                            '${tasksWorkingFolder.list[index].plainText}',
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyText1
+                                .copyWith(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onBackground
+                                        .withOpacity(.8)),
+                            overflow: TextOverflow.clip,
+                            maxLines: 2,
+                          )
+                        : null,
+                    isThreeLine: false,
+                  ),
+                ),
               );
             },
           ),
