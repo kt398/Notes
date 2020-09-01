@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:notes/main.dart';
 import 'File.dart';
 import 'package:zefyr/zefyr.dart';
@@ -22,7 +21,7 @@ class TextPageState extends State<TextPage> {
   TextEditingController _controller = new TextEditingController();
   String title;
   var fontWeight = [false, false, false];
-  var date=DateTime.now();
+  var date = DateTime.now();
   var time = TimeOfDay.now();
   var finalDateTime = DateTime.now();
 
@@ -37,8 +36,8 @@ class TextPageState extends State<TextPage> {
   @override
   void initState() {
     node = FocusNode();
-    if(widget.file.type==Type.task){
-      date=(widget.file as Task).date;
+    if (widget.file.type == Type.task) {
+      date = (widget.file as Task).date;
     }
     final document = loadDocument();
     zController = new ZefyrController(document);
@@ -66,10 +65,101 @@ class TextPageState extends State<TextPage> {
     }
   }
 
+  String notificationType(int notificationTypeInt) {
+    switch (notificationTypeInt) {
+      case 0:
+        {
+          return 'None';
+        }
+        break;
+      case 1:
+        {
+          return 'One-Time';
+        }
+        break;
+      case 2:
+        {
+          return 'Annual';
+        }
+      case 3:
+        {
+          return 'Weekly';
+        }
+        break;
+      case 4:
+        {
+          return 'Daily';
+        }
+        break;
+    }
+    return '';
+  }
+
+  Future<int> notificationTypeAlertDialog() {
+    return showDialog<int>(
+        context: context,
+        barrierDismissible: true,
+        builder: (BuildContext context) {
+          return SimpleDialog(
+            title: Text('Notification Type'),
+            children: [
+              SimpleDialogOption(
+                onPressed: () {
+                  setState(() {
+                    (widget.file as Task).notificationType = 0;
+                  });
+                  Navigator.of(context).pop(0);
+                },
+                child: const Text("None"),
+              ),
+              SimpleDialogOption(
+                onPressed: () {
+                  setState(() {
+                    (widget.file as Task).notificationType = 1;
+                  });
+                  Navigator.of(context).pop(1);
+                },
+                child: const Text("One-Time"),
+              ),
+              SimpleDialogOption(
+                onPressed: () {
+                  setState(() {
+                    (widget.file as Task).notificationType = 4;
+                  });
+                  Navigator.of(context).pop(4);
+                },
+                child: const Text("Daily"),
+              ),
+              SimpleDialogOption(
+                onPressed: () {
+                  setState(() {
+                    (widget.file as Task).notificationType = 3;
+                  });
+                  Navigator.of(context).pop(3);
+                },
+                child: const Text("Weekly"),
+              ),
+              SimpleDialogOption(
+                onPressed: () {
+                  setState(() {
+                    (widget.file as Task).notificationType = 2;
+                  });
+                  Navigator.of(context).pop(2);
+                },
+                child: const Text("Annual"),
+              ),
+            ],
+          );
+        });
+  }
+
   Row printDateTime(DateTime date, TimeOfDay time) {
-    return Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+    return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Text(
-        '${date.month}/${date.day}/${date.year} ${time.format(context)}',
+        '  ${notificationType((widget.file as Task).notificationType)}',
+      ),
+      Text(
+        '${date.month}/${date.day}/${date.year} ${time.format(context)}  ',
         style: TextStyle(fontSize: 20, letterSpacing: 0),
       ),
     ]);
@@ -144,23 +234,77 @@ class TextPageState extends State<TextPage> {
                 color: Theme.of(context).colorScheme.onPrimary,
               ),
               onPressed: () async {
-                var dateTemp = await selectDate();
-                if (dateTemp == null) return;
-                var timeTemp = await selectTime();
-                if (timeTemp == null) return;
-                DateTime finalDate = new DateTime(dateTemp.year, dateTemp.month,
-                    dateTemp.day, timeTemp.hour, timeTemp.minute, 0, 0, 0);
-                print(finalDate.toIso8601String());
-                setState(() {
-                  (widget.file as Task).changeDate(finalDate);
-                });
-                await turnOffNotificationById(flutterLocalNotificationsPlugin,(widget.file as Task).notificationID);
-                await scheduleNotification(flutterLocalNotificationsPlugin,
-                    widget.file.entity.path, (widget.file as Task).notificationID, 'Test body', finalDate);
-                //print((widget.file as Task).date.toString());
-                setState(() {
-                  date = dateTemp;
-                  time = timeTemp;
+                notificationTypeAlertDialog().then((value) async {
+                  if (value == null) {
+                    //Barrier dismissed, not sure if this works
+                    return;
+                  } else if (value == 0) {
+                    //No notification, no date
+                    setState(() {
+                      (widget.file as Task).notificationType = 0;
+                      return;
+                    });
+                  } else if (value == 1) {
+                    //One-time notification
+                    var dateTemp = await selectDate();
+                    if (dateTemp == null) return;
+                    var timeTemp = await selectTime();
+                    if (timeTemp == null) return;
+                    DateTime finalDate = new DateTime(
+                        dateTemp.year,
+                        dateTemp.month,
+                        dateTemp.day,
+                        timeTemp.hour,
+                        timeTemp.minute,
+                        0,
+                        0,
+                        0);
+                    setState(() {
+                      (widget.file as Task).changeDate(finalDate);
+                    });
+                    await turnOffNotificationById(notificationsPlugin,
+                        (widget.file as Task).notificationID);
+                    await scheduleNotification(
+                        notificationsPlugin,
+                        widget.file.entity.path,
+                        (widget.file as Task).notificationID,
+                        widget.file.title,
+                        finalDate);
+                    setState(() {
+                      date = dateTemp;
+                      time = timeTemp;
+                    });
+                  } else if (value == 3) {
+                    //Weekly Notification
+                    var dateTemp = await selectDate();
+                    if (dateTemp == null) return;
+                    var timeTemp = await selectTime();
+                    if (timeTemp == null) return;
+                    DateTime finalDate = new DateTime(
+                        dateTemp.year,
+                        dateTemp.month,
+                        dateTemp.day,
+                        timeTemp.hour,
+                        timeTemp.minute,
+                        0,
+                        0,
+                        0);
+                    setState(() {
+                      (widget.file as Task).changeDate(finalDate);
+                    });
+                    await turnOffNotificationById(notificationsPlugin,
+                        (widget.file as Task).notificationID);
+                    await scheduleNotificationWeekly(
+                        notificationsPlugin,
+                        widget.file.entity.path,
+                        (widget.file as Task).notificationID,
+                        widget.file.title,
+                        finalDate);
+                    setState(() {
+                      date = dateTemp;
+                      time = timeTemp;
+                    });
+                  }
                 });
               },
             ),
@@ -171,7 +315,6 @@ class TextPageState extends State<TextPage> {
               color: Theme.of(context).colorScheme.onPrimary,
               onPressed: () async {
                 await _saveDocument(context);
-                //Navigator.popUntil(context, (route) => false),
               },
             ),
           ),

@@ -8,15 +8,15 @@ import 'dart:async';
 import 'NotificationHelper.dart';
 
 
-final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+final FlutterLocalNotificationsPlugin notificationsPlugin =
     FlutterLocalNotificationsPlugin();
 NotificationAppLaunchDetails notificationAppLaunchDetails;
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   notificationAppLaunchDetails =
-      await flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
-  await initNotifications(flutterLocalNotificationsPlugin);
-  requestIOSPermissions(flutterLocalNotificationsPlugin);
+      await notificationsPlugin.getNotificationAppLaunchDetails();
+  await initNotifications(notificationsPlugin);
+  requestIOSPermissions(notificationsPlugin);
 
   runApp(MyApp());
 }

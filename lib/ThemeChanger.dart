@@ -31,12 +31,12 @@ class ThemeChanger with ChangeNotifier {
           letterSpacing: 0,
         ),
         bodyText2: GoogleFonts.roboto(
-          color: Colors.white,
+          //color: Colors.white,
           fontSize: 22,
           letterSpacing: 0,
         ),
         subtitle2: GoogleFonts.roboto(//trailing for the cards
-          color: Colors.black,
+          //color: Colors.black,
           fontSize: 14,
           letterSpacing: 0,
         ));
@@ -47,6 +47,11 @@ class ThemeChanger with ChangeNotifier {
       applyElevationOverlayColor: true,
       splashColor: Colors.transparent,
       //highlightColor: Colors.transparent,
+      timePickerTheme: TimePickerThemeData(
+        dayPeriodTextColor: Colors.white,
+        dialTextColor: Colors.white,
+        hourMinuteTextColor: Colors.white,
+      ),
       cardTheme: CardTheme(
         elevation: 0,
         color: Colors.grey[900],
@@ -92,7 +97,7 @@ class ThemeChanger with ChangeNotifier {
       //highlightColor: Colors.transparent,
       cardTheme: CardTheme(
         elevation: 0,
-        color: Colors.grey[350],
+        color: Colors.blue[100].withOpacity(.7),
       ),
       primaryColor: lightPrimary,
       scaffoldBackgroundColor: lightBackground,
@@ -124,8 +129,8 @@ class ThemeChanger with ChangeNotifier {
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         elevation: 8,
-        foregroundColor: lightonSecondary,
-        backgroundColor: lightSecondary,
+        foregroundColor: lightonPrimary,
+        backgroundColor: lightPrimary,
       ),
     );
   }

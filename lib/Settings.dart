@@ -1,12 +1,16 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:notes/NotificationHelper.dart';
+import 'package:notes/main.dart';
 import 'saveState.dart';
 import 'ThemeChanger.dart';
 import 'package:provider/provider.dart';
+import 'File.dart';
 
 class Settings extends StatefulWidget {
   final SaveState save;
-  Settings(this.save);
+  final Folder tasksFolder;
+  Settings(this.save,this.tasksFolder);
   @override
   SettingState createState() => SettingState();
 }
@@ -77,12 +81,13 @@ class SettingState extends State<Settings> {
             Container(
               width: width,
               height: bodyHeight / 8,
+              padding: EdgeInsets.fromLTRB(15, 0, 15, 0),
               decoration: BoxDecoration(
                   border: Border(
-                //top:BorderSide(color: Colors.grey,width: 1),
                 bottom: BorderSide(color: Colors.grey[600], width: 1),
               )),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     "Notifications",
@@ -98,6 +103,12 @@ class SettingState extends State<Settings> {
                           widget.save.write();
                           //TODO remove or add notifications for all tasks
                         });
+                        if(value){
+                          widget.tasksFolder.turnOnNotifications();
+                        }
+                        else{
+                          turnOffNotification(notificationsPlugin);
+                        }
                       }),
                 ],
               ),

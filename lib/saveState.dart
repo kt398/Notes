@@ -23,15 +23,13 @@ class SaveState {
     Stream temp = dir.list(recursive: false, followLinks: false);
     await for (FileSystemEntity entity in temp) {
       if (entity is File) {
-        print(entity.path);
         String temp = await entity.readAsString();
+        print(temp);
         String plainText =
             NotusDocument.fromJson(jsonDecode(temp)).toPlainText();
         if (isTask) {
-          List<String> strings= entity.path.split('^&@');
-          String temp2=GetName.basenameWithoutExtension(strings[0]);
-          print('Temp2');
-          print(temp2);
+          List<String> strings = entity.path.split('^&@');
+          String temp2 = GetName.basenameWithoutExtension(strings[0]);
           object.list.add(new Task(
               entity.path,
               GetName.basenameWithoutExtension(temp2),
@@ -40,10 +38,8 @@ class SaveState {
               await entity.readAsString(),
               plainText,
               int.parse(strings[2]),
-              DateTime.parse(strings[1])));
-              //tasktest123.json^&@2020-08-17 18:43:18.880099^&@1
-              //_path:"/data/user/0/com.example.notes/app_flutter/Root//Tasks/tasktest123.json^&@2020-08-17 18:43:18.880099^&@1"
-
+              DateTime.parse(strings[1]),
+              int.parse(strings[3])));
         } else {
           object.list.add(new Note(
               entity.path,
@@ -70,19 +66,24 @@ class SaveState {
     Directory notes;
     Directory tasks;
     final Directory dir = await getApplicationDocumentsDirectory();
-    final Directory rootFolder = Directory('${dir.path}/Root/');
+    final Directory rootFolder = Directory('${dir.path}/Root');
     if (!(await rootFolder.exists())) {
       final newRootFolder = await rootFolder.create(
         recursive: false,
       );
       notes = await (Directory('${newRootFolder.path}/Notes')
           .create(recursive: true));
+      print(newRootFolder.path);
+      print(notes.path);
       tasks = await (Directory('${newRootFolder.path}/Tasks')
           .create(recursive: true));
     } else {
       notes = Directory('${rootFolder.path}/Notes');
       tasks = Directory('${rootFolder.path}/Tasks');
+
     }
+    print(notes.path);
+    print(tasks.path);
     root = new Folder("Root", null, rootFolder, null, '');
     notesObj = new Folder("Notes", null, notes, root, 'Notes');
     tasksObj = new Folder("Tasks", null, tasks, root, 'Tasks');
@@ -97,7 +98,7 @@ class SaveState {
 
   Future<void> init() async {
     this.prefs = await SharedPreferences.getInstance();
-    this.lastTask=await tasksObj.getTotalFiles();
+    this.lastTask = await tasksObj.getTotalFiles();
     if (prefs.containsKey("theme")) {
       isDark = prefs.getBool("theme");
     } else {

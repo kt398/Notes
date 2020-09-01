@@ -3,8 +3,6 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:http/http.dart' as http;
-import 'package:path_provider/path_provider.dart';
 import 'package:rxdart/subjects.dart';
 
 class ReminderNotification {
@@ -20,6 +18,7 @@ class ReminderNotification {
     @required this.payload,
   });
 }
+
 final BehaviorSubject<ReminderNotification> didReceiveLocalNotificationSubject =
     BehaviorSubject<ReminderNotification>();
 
@@ -61,14 +60,10 @@ void requestIOSPermissions(
       );
 }
 
-
-
-
 Future<void> turnOffNotification(
     FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin) async {
   await flutterLocalNotificationsPlugin.cancelAll();
 }
-
 
 Future<void> turnOffNotificationById(
     FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin,
@@ -93,4 +88,63 @@ Future<void> scheduleNotification(
       androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
   await flutterLocalNotificationsPlugin.schedule(id, 'Reminder', body,
       scheduledNotificationDateTime, platformChannelSpecifics);
+}
+
+Future<void> scheduleNotificationPeriodically(
+    FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin,
+    String channelId,
+    int id,
+    String body,
+    RepeatInterval interval) async {
+  var androidPlatformChannelSpecifics = AndroidNotificationDetails(
+    channelId,
+    'Reminder notifications',
+    'Remember about it',
+    icon: 'app_icon',
+  );
+  var iOSPlatformChannelSpecifics = IOSNotificationDetails();
+  var platformChannelSpecifics = NotificationDetails(
+      androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+  await flutterLocalNotificationsPlugin.periodicallyShow(
+      id, 'Reminder', body, interval, platformChannelSpecifics);
+}
+
+Future<void> scheduleNotificationsDaily(
+    FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin,
+    String channelId,
+    int id,
+    String body,
+    Time time) async {
+  var androidPlatformChannelSpecifics = AndroidNotificationDetails(
+    channelId,
+    'Reminder notifications',
+    'Remember about it',
+    icon: 'app_icon',
+  );
+  var iOSPlatformChannelSpecifics = IOSNotificationDetails();
+  var platformChannelSpecifics = NotificationDetails(
+      androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+  await flutterLocalNotificationsPlugin.showDailyAtTime(
+      id, 'Reminder', body, time, platformChannelSpecifics);
+}
+
+Future<void> scheduleNotificationWeekly(
+    FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin,
+    String channelId,
+    int id,
+    String body,
+    DateTime date
+    ) async {
+  var androidPlatformChannelSpecifics = AndroidNotificationDetails(
+    channelId,
+    'Reminder notifications',
+    'Remember about it',
+    icon: 'app_icon',
+  );
+  Day day=Day((date.weekday%7)+1);
+  Time time=Time(date.hour,date.minute,0);
+  var iOSPlatformChannelSpecifics = IOSNotificationDetails();
+  var platformChannelSpecifics = NotificationDetails(
+      androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);
+  await flutterLocalNotificationsPlugin.showWeeklyAtDayAndTime(id, 'Reminder', body, day, time, platformChannelSpecifics);
 }

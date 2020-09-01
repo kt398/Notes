@@ -9,12 +9,8 @@ import 'File.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
 //TODO make everything pretty
-//TODO convert tasks date from string to DateTime
-//TODO notifications
-//TODO card styling
-//TODO textpage title
+//TODO notifications-Mostly Done
 //TODO licenses
-//TODO Add stuff to settings page
 
 class Home extends StatefulWidget {
   final SaveState save;
@@ -38,7 +34,6 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     notesWorkingFolder = widget.save.notesObj;
     tasksWorkingFolder = widget.save.tasksObj;
     super.initState();
-    //_controller.text='Untitled';
     tabController = TabController(vsync: this, length: 2);
   }
 
@@ -75,7 +70,6 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
           });
         }).then((value) {
       setState(() {
-        print("End");
       });
     });
   }
@@ -88,11 +82,10 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
   }
 
   void choiceAction(String choice, SaveState save) {
-    print(save.isDark);
     if (choice == Constants.Settings) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => Settings(save)),
+        MaterialPageRoute(builder: (context) => Settings(save,widget.save.tasksObj)),
       );
     } else if (choice == Constants.Import) {
     } else if (choice == Constants.Export) {}
@@ -244,7 +237,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         child: Text(
                           'Cancel',
                           style: TextStyle(
-                            color: Colors.tealAccent,
+                            color: Theme.of(context).colorScheme.secondary,
                             fontSize: 18,
                           ),
                         ),
@@ -309,7 +302,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                         child: Text(
                           'Submit',
                           style: TextStyle(
-                            color: Colors.tealAccent,
+                            color: Theme.of(context).colorScheme.secondary,
                             fontSize: 18,
                           ),
                         ),
@@ -337,12 +330,12 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
       animatedIconTheme: IconThemeData(),
       children: [
         SpeedDialChild(
-          child: Icon(Icons.note_add),
+          child: Icon(Icons.note_add,color: Theme.of(context).floatingActionButtonTheme.foregroundColor),
           onTap: () => {
             enterName(true),
           },
           label: 'New Note',
-          labelStyle: Theme.of(context).textTheme.subtitle2,
+          labelStyle: Theme.of(context).textTheme.subtitle2.copyWith(color: Colors.black),
         ),
         SpeedDialChild(
           child: Icon(Icons.folder),
@@ -350,7 +343,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
             enterName(false),
           },
           label: "New Folder",
-          labelStyle: Theme.of(context).textTheme.subtitle2,
+          labelStyle: Theme.of(context).textTheme.subtitle2.copyWith(color: Colors.black),
         ),
       ],
     );
@@ -449,7 +442,7 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
                   title: TabBar(
                     //physics: NeverScrollableScrollPhysics(),
                     controller: tabController,
-                    indicatorColor: Theme.of(context).colorScheme.secondary,
+                    indicatorColor: widget.save.isDark?Theme.of(context).colorScheme.secondary:Colors.white,
                     tabs: <Widget>[
                       Tab(
                         child: Text(
