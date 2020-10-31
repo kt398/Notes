@@ -14,6 +14,7 @@ class SaveState {
   Folder root;
   Folder notesObj;
   Folder tasksObj;
+  bool signedIn;
   saveState() async {
     await init();
   }
@@ -109,10 +110,17 @@ class SaveState {
     } else {
       notifications = true;
     }
+    if(prefs.containsKey('signedIn')){
+      signedIn=prefs.getBool('signedIn');
+    }
+    else{
+      signedIn=false;
+    }
   }
 
   void write() {
     prefs.setBool("theme", isDark);
     prefs.setBool('notifications', notifications);
+    prefs.setBool('signedIn', signedIn);
   }
 }

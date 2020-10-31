@@ -6,7 +6,10 @@ import 'Settings.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'TextPage.dart';
 import 'File.dart';
+import 'GoogleAuthClient.dart';
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:googleapis/drive/v3.dart' as drive;
+import 'package:google_sign_in/google_sign_in.dart';
 
 //TODO make everything pretty
 //TODO notifications-Mostly Done
@@ -17,8 +20,11 @@ class Home extends StatefulWidget {
   Home(this.save);
   HomeState createState() => HomeState();
 }
-
+GoogleSignIn _googleSignIn = GoogleSignIn(
+  scopes: [drive.DriveApi.DriveScope]
+);
 class HomeState extends State<Home> with SingleTickerProviderStateMixin {
+  GoogleSignInAccount currentUser;
   TabController tabController;
   TextEditingController _controller = new TextEditingController();
   TextEditingController renameController = new TextEditingController();
@@ -35,8 +41,19 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     tasksWorkingFolder = widget.save.tasksObj;
     super.initState();
     tabController = TabController(vsync: this, length: 2);
+    _googleSignIn.onCurrentUserChanged.listen((GoogleSignInAccount account) {
+      setState(() {
+        currentUser = account;
+      });
+      if (currentUser != null) {
+      }
+    });
+    _googleSignIn.signInSilently();
   }
-
+  /*
+  Dialog box that shows when delete is clicked from settings menu
+  Confirmation to delete selected files/folders
+  */
   void deleteAlertDialog() {
     showDialog(
         context: context,
@@ -81,16 +98,54 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     tabController.dispose();
   }
 
-  void choiceAction(String choice, SaveState save) {
+  void choiceAction(String choice, SaveState save){
     if (choice == Constants.Settings) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => Settings(save,widget.save.tasksObj)),
       );
     } else if (choice == Constants.Import) {
-    } else if (choice == Constants.Export) {}
+      print('import');
+      if(currentUser==null){
+        checkLogin();
+      }
+      import();
+
+    } else if (choice == Constants.Export) {
+      if(currentUser==null){
+        checkLogin();
+      }
+    }
   }
 
+  void checkLogin() async{
+    GoogleSignInAccount account = await _googleSignIn.signIn();
+    if(account==null){
+      print('Canceled?');
+      return;
+    }
+    else{
+      currentUser=account;
+      print('User account $currentUser');
+      print('after');
+      return;
+    }
+    
+  }
+  void import() async{
+    print('inside import');
+    final authHeaders = await currentUser.authHeaders;
+    final authenticateClient = GoogleAuthClient(authHeaders);
+    final driveApi = drive.DriveApi(authenticateClient);
+    final Stream<List<int>> mediaStream =
+    Future.value([104, 105]).asStream().asBroadcastStream();
+    var media = new drive.Media(mediaStream, 2);
+    var driveFile = new drive.File();
+    driveFile.name = "hello_world.txt";
+    final result = await driveApi.files.create(driveFile, uploadMedia: media);
+    print("Upload result: $result");
+
+  }
   void selectedMenuChoice(String choice) {
     if (choice == Constants.Delete) {
       deleteAlertDialog();
@@ -194,7 +249,11 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
       });
     });
   }
-
+  /*
+  Dialog Box when a new file/folder is created.
+  Asks the user to enter the name of the file/folder
+  Shows an error if the name already exists in the current directory
+  */
   enterName(bool isFile) {
     bool temp;
     bool validate = true;
@@ -318,6 +377,10 @@ class HomeState extends State<Home> with SingleTickerProviderStateMixin {
     });
   }
 
+
+  /*
+  Icon menu at the bottom right to add a new file/folder
+  */
   SpeedDial buildAddIcons() {
 
     //bool temp = true;

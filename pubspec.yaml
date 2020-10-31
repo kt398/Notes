@@ -33,6 +33,8 @@ dependencies:
       url: https://github.com/memspace/zefyr.git
       path: packages/zefyr
   quill_delta: ^1.0.2
+  googleapis: ^0.56.1
+  google_sign_in: ^4.5.5
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

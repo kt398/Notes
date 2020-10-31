@@ -109,18 +109,19 @@ Future<void> scheduleNotificationPeriodically(
       id, 'Reminder', body, interval, platformChannelSpecifics);
 }
 
-Future<void> scheduleNotificationsDaily(
+Future<void> scheduleNotificationDaily(
     FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin,
     String channelId,
     int id,
     String body,
-    Time time) async {
+    DateTime timeOfDay) async {
   var androidPlatformChannelSpecifics = AndroidNotificationDetails(
     channelId,
     'Reminder notifications',
     'Remember about it',
     icon: 'app_icon',
   );
+  Time time=Time(timeOfDay.hour,timeOfDay.minute,0);
   var iOSPlatformChannelSpecifics = IOSNotificationDetails();
   var platformChannelSpecifics = NotificationDetails(
       androidPlatformChannelSpecifics, iOSPlatformChannelSpecifics);

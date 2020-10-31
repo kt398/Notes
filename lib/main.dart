@@ -6,6 +6,7 @@ import 'ThemeChanger.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:async';
 import 'NotificationHelper.dart';
+import 'package:flutter/services.dart';
 
 
 final FlutterLocalNotificationsPlugin notificationsPlugin =
@@ -17,8 +18,10 @@ Future<void> main() async {
       await notificationsPlugin.getNotificationAppLaunchDetails();
   await initNotifications(notificationsPlugin);
   requestIOSPermissions(notificationsPlugin);
-
-  runApp(MyApp());
+  SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp])
+    .then((_) {
+      runApp(MyApp());
+    });
 }
 
 class MyApp extends StatelessWidget {

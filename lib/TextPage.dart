@@ -22,8 +22,6 @@ class TextPageState extends State<TextPage> {
   String title;
   var fontWeight = [false, false, false];
   var date = DateTime.now();
-  var time = TimeOfDay.now();
-  var finalDateTime = DateTime.now();
 
   NotusDocument loadDocument() {
     if (widget.file.data.isNotEmpty) {
@@ -59,6 +57,8 @@ class TextPageState extends State<TextPage> {
       widget.file.plainText = plainText;
       await (widget.file.entity as File).writeAsString(contents, flush: true);
       await Future.delayed(new Duration(milliseconds: 750));
+      widget.file.dateModified =
+          await (widget.file.entity as File).lastModified();
       return true;
     } else {
       return false;
@@ -105,61 +105,123 @@ class TextPageState extends State<TextPage> {
             children: [
               SimpleDialogOption(
                 onPressed: () {
-                  setState(() {
-                    (widget.file as Task).notificationType = 0;
-                  });
                   Navigator.of(context).pop(0);
                 },
                 child: const Text("None"),
               ),
               SimpleDialogOption(
                 onPressed: () {
-                  setState(() {
-                    (widget.file as Task).notificationType = 1;
-                  });
                   Navigator.of(context).pop(1);
                 },
                 child: const Text("One-Time"),
               ),
               SimpleDialogOption(
                 onPressed: () {
-                  setState(() {
-                    (widget.file as Task).notificationType = 4;
-                  });
                   Navigator.of(context).pop(4);
                 },
                 child: const Text("Daily"),
               ),
               SimpleDialogOption(
                 onPressed: () {
-                  setState(() {
-                    (widget.file as Task).notificationType = 3;
-                  });
                   Navigator.of(context).pop(3);
                 },
                 child: const Text("Weekly"),
               ),
-              SimpleDialogOption(
-                onPressed: () {
-                  setState(() {
-                    (widget.file as Task).notificationType = 2;
-                  });
-                  Navigator.of(context).pop(2);
-                },
-                child: const Text("Annual"),
-              ),
+              // SimpleDialogOption(
+              //   onPressed: () {
+              //     setState(() {
+              //       (widget.file as Task).notificationType = 2;
+              //     });
+              //     Navigator.of(context).pop(2);
+              //   },
+              //   child: const Text("Annual"),
+              //),
             ],
           );
         });
   }
 
-  Row printDateTime(DateTime date, TimeOfDay time) {
+  String getWeekday(int dayOfWeek) {
+    switch (dayOfWeek) {
+      case 1:
+        {
+          return 'Monday';
+        }
+        break;
+      case 2:
+        {
+          return 'Tuesday';
+        }
+        break;
+      case 3:
+        {
+          return 'Wednesday';
+        }
+        break;
+      case 4:
+        {
+          return 'Thursday';
+        }
+        break;
+      case 5:
+        {
+          return 'Friday';
+        }
+        break;
+      case 6:
+        {
+          return 'Saturday';
+        }
+        break;
+      case 7:
+        {
+          return 'Sunday';
+        }
+        break;
+    }
+    return '';
+  }
+
+  String dateAndTime(DateTime date, TimeOfDay time) {
+    switch ((widget.file as Task).notificationType) {
+      case 0:
+        {
+          return '';
+        }
+        break;
+      case 1:
+        {
+          return '${date.month}/${date.day}/${date.year} ${time.format(context)}';
+        }
+        break;
+      case 2:
+        {
+          return 'this shouldnt work';
+        }
+        break;
+      case 3:
+        {
+          //weekly
+          return '${getWeekday(date.weekday)} ${time.format(context)}';
+        }
+        break;
+      case 4:
+        {
+          //daily
+          return '${time.format(context)}  ';
+        }
+    }
+    return '';
+  }
+
+  Row printDateTime(DateTime date) {
+    TimeOfDay time = new TimeOfDay(hour: date.hour, minute: date.minute);
     return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
       Text(
         '  ${notificationType((widget.file as Task).notificationType)}',
       ),
       Text(
-        '${date.month}/${date.day}/${date.year} ${time.format(context)}  ',
+        '${dateAndTime(date, time)}',
         style: TextStyle(fontSize: 20, letterSpacing: 0),
       ),
     ]);
@@ -223,8 +285,7 @@ class TextPageState extends State<TextPage> {
         ),
         bottom: widget.file.type == Type.task
             ? PreferredSize(
-                preferredSize: Size.fromHeight(20),
-                child: printDateTime(date, time))
+                preferredSize: Size.fromHeight(20), child: printDateTime(date))
             : null,
         actions: <Widget>[
           if (widget.file.type == Type.task)
@@ -271,8 +332,8 @@ class TextPageState extends State<TextPage> {
                         widget.file.title,
                         finalDate);
                     setState(() {
-                      date = dateTemp;
-                      time = timeTemp;
+                      date = finalDate;
+                      (widget.file as Task).notificationType = value;
                     });
                   } else if (value == 3) {
                     //Weekly Notification
@@ -291,6 +352,7 @@ class TextPageState extends State<TextPage> {
                         0);
                     setState(() {
                       (widget.file as Task).changeDate(finalDate);
+                      (widget.file as Task).notificationType = value;
                     });
                     await turnOffNotificationById(notificationsPlugin,
                         (widget.file as Task).notificationID);
@@ -301,8 +363,27 @@ class TextPageState extends State<TextPage> {
                         widget.file.title,
                         finalDate);
                     setState(() {
-                      date = dateTemp;
-                      time = timeTemp;
+                      date = finalDate;
+                    });
+                  } else if (value == 4) {
+                    var timeTemp = await selectTime();
+                    if (timeTemp == null) return;
+                    DateTime finalDate = new DateTime(
+                        1, 1, 1, timeTemp.hour, timeTemp.minute, 0, 0, 0);
+                    setState(() {
+                      (widget.file as Task).changeDate(finalDate);
+                      (widget.file as Task).notificationType = value;
+                    });
+                    await turnOffNotificationById(notificationsPlugin,
+                        (widget.file as Task).notificationID);
+                    await scheduleNotificationDaily(
+                        notificationsPlugin,
+                        widget.file.entity.path,
+                        (widget.file as Task).notificationID,
+                        widget.file.title,
+                        finalDate);
+                    setState(() {
+                      date = finalDate;
                     });
                   }
                 });
@@ -314,7 +395,28 @@ class TextPageState extends State<TextPage> {
               disabledColor: Theme.of(context).colorScheme.onBackground,
               color: Theme.of(context).colorScheme.onPrimary,
               onPressed: () async {
-                await _saveDocument(context);
+                showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (BuildContext context) {
+                      return SimpleDialog(
+                        contentPadding: EdgeInsets.fromLTRB(0, 16, 12, 16),
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              Text('Saving...'),
+                              CircularProgressIndicator(),
+                            ],
+                          ),
+                        ],
+                      );
+                    });
+                if (await _saveDocument(context)) {
+                  Navigator.of(context).pop();
+                } else {
+                  Navigator.of(context).pop();
+                }
               },
             ),
           ),
